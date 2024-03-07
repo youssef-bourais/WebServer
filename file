@@ -1,0 +1,7 @@
+server.cpp:30:22: error: no matching function for call to 'accept'
+    int new_socket = accept(sockfd, (struct sockaddr *)&address, sizeof(address));   
+                     ^~~~~~
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/socket.h:691:9: note: candidate function not viable: no known conversion from 'unsigned long' to 'socklen_t *' (aka 'unsigned int *') for 3rd argument
+int     accept(int, struct sockaddr * __restrict, socklen_t * __restrict)
+        ^
+1 error generated.
