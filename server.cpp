@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/19 14:25:59 by ybourais          #+#    #+#             */
-/*   Updated: 2024/03/19 16:10:02 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/03/19 17:08:46 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ int main()
     struct sockaddr_in address;
     memset((char *)&address, 0, sizeof(address));
     address.sin_family = AF_INET; // indicates the type of address the socket will use
-    address.sin_port = htons(80800);
+    address.sin_port = htons(80);
     address.sin_addr.s_addr = INADDR_ANY; // any availabe address
 
     // Forcefully attaching socket to the port 8080
@@ -55,7 +55,7 @@ int main()
 
     std::cout << "client: " <<buff<<std::endl;
 
-    const char *messege = "hello from server";
+    const char *messege = "Hi mom";
     send(new_socket, messege, strlen(messege), 0);
 
     // closing the connected socket

@@ -1,26 +1,24 @@
-NAME = server client
 
-SRCS = server.cpp client.cpp
+SRC = server.cpp client.cpp
 
-CC = c++ -std=c++98
+OBJ = ${SRC:.cpp=.o}
 
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Wextra -Werror
 
-OBJS = ${SRCS:.cpp=.o}
+all:server client
 
-%.o : %.cpp	
-		$(CC) $(CFLAGS) -c $<
+client:$(OBJ)
+	c++ $(CFLAGS) client.o -o client 
+server:$(OBJ)
+	c++ $(CFLAGS) server.o -o server
 
-all : $(NAME)
+%.o:%.cpp
+	c++ $(CFLAGS) $^ -c
 
+clean:
+	rm -f $(OBJ)
 
-$(NAME) : $(OBJS) Makefile
-		$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
-clean :
-	rm -rf $(OBJS)
+fclean:clean
+	rm -f server client
 
-fclean : clean
-	rm -rf $(NAME)
-
-re : fclean all
-
+re:fclean server client
