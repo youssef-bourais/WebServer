@@ -8,7 +8,7 @@
 
 int main()
 {
-    int fd = open("/Users/ybourais/Desktop/blanat/mini.txt", O_RDWR);
+    int fd = open("./txt.txt", O_RDWR);
 
     struct stat sb;
 
