@@ -5,6 +5,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+
 int main()
 {
     int fd = open("/Users/ybourais/Desktop/blanat/mini.txt", O_RDWR);
