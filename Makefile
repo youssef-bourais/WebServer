@@ -1,4 +1,3 @@
-
 SRC = server.cpp client.cpp
 
 OBJ = ${SRC:.cpp=.o}
