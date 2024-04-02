@@ -6,10 +6,11 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/01 17:15:16 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:18:10 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <cstring>
 #include <iostream>
 #include <netinet/in.h> // struct sockaddr_in
 #include <sys/socket.h> // socket, bind, listen
@@ -17,7 +18,7 @@
 
 #define SA struct sockaddr_in
 #define PORT 80
-#define MAXLEN 256
+#define MAXLEN 4096
 
 int main() 
 {
@@ -27,6 +28,13 @@ int main()
     {
         std::cerr << "ERROR SOCKET: " << strerror(errno)<<std::endl;
         return 1;
+    }   
+    int opt = 1;
+    // it helps in reuse of address and port. Prevents error such as: “address already in use”
+    if (setsockopt(ServerFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) 
+    {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
     }
     SA address;
     memset(&address, 0,sizeof(address));
@@ -49,7 +57,6 @@ int main()
     while(true) 
     {
         std::cout << "waiting for conection on Port: " << PORT <<std::endl;
-        socklen_t len = sizeof(address);
         // extracts the first connection request on the queue of pending connections for the listening socket
         int fdconnection = accept(ServerFd, (struct sockaddr *)NULL, NULL);
         if(fdconnection < 0)
@@ -58,24 +65,41 @@ int main()
             return 1;
         }
         int r = 0;
-        char RecivedRequest[MAXLEN] = {0};
-        while((r = read(fdconnection, RecivedRequest, MAXLEN - 1)) > 0)
-        {
+        char RecivedRequest[MAXLEN + 1] = {0};
+        memset(RecivedRequest, 0, MAXLEN);
+        std::string msg;
+        r = 1;
+        /* while(true) */
+        /* { */
+            r = read(fdconnection, RecivedRequest, MAXLEN);
+            printf("%d\n", r);
             std::cout<< RecivedRequest<<std::endl;
-            if(RecivedRequest[MAXLEN - 1] == '\n')
-                break;
-            /* memset(message, 0, MESSAGE); */
-            /* std::cout << "hello"<<std::endl; */
-        }
+            /* if(RecivedRequest[MAXLEN - 1] == '\n' || r == 0) */
+            /* { */
+                /* break; */
+            /* } */
+            memset(RecivedRequest, 0, MAXLEN);
+        /* } */
+        std::cout << "readed"<<std::endl;
         if(r < 0)
         {
             std::cerr<< "read ERROR"<<std::endl;
             return 1;
         }
-        char mesg[256] = "HTTP/1.0 200 OK\r\n\r\nHI MOM";
-        write(fdconnection, &mesg, strlen(mesg));
+        // Send response to the client
+        const char* response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nhello";
+        int response_length = strlen(response);
+        if (send(fdconnection, response, response_length, 0) != response_length) 
+        {
+            std::cerr << "Send error: " << strerror(errno) << std::endl;
+            close(fdconnection);
+            return 1;
+        }
+        /* write(fdconnection, &response, strlen(response)); */
+        /* send(fdconnection, response, strlen(response), 0); */
         close(fdconnection);
     }
     close(ServerFd);
     return 0;
 }
+
