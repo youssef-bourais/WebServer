@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/02 22:18:10 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/02 22:54:24 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ int main()
     address.sin_family = PF_INET;
     address.sin_addr.s_addr = htonl(INADDR_ANY); // we use htonl to convert the INADDR_ANY constant to network byte order
     address.sin_port = htons(PORT);
-    
     //assigns the address specified by addr to the socket referred to by the file descriptor serverfd
     if(bind(ServerFd, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
@@ -68,11 +67,9 @@ int main()
         char RecivedRequest[MAXLEN + 1] = {0};
         memset(RecivedRequest, 0, MAXLEN);
         std::string msg;
-        r = 1;
         /* while(true) */
         /* { */
             r = read(fdconnection, RecivedRequest, MAXLEN);
-            printf("%d\n", r);
             std::cout<< RecivedRequest<<std::endl;
             /* if(RecivedRequest[MAXLEN - 1] == '\n' || r == 0) */
             /* { */
@@ -80,23 +77,25 @@ int main()
             /* } */
             memset(RecivedRequest, 0, MAXLEN);
         /* } */
-        std::cout << "readed"<<std::endl;
         if(r < 0)
         {
             std::cerr<< "read ERROR"<<std::endl;
             return 1;
         }
         // Send response to the client
-        const char* response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 5\r\n\r\nhello";
+        const char* response = "HTTP/1.0 200 OK\r\n\r\nHI MOM";
         int response_length = strlen(response);
-        if (send(fdconnection, response, response_length, 0) != response_length) 
+        /* if (send(fdconnection, response, response_length, 0) != response_length)  */
+        /* { */
+        /*     std::cerr << "Send error: " << strerror(errno) << std::endl; */
+        /*     close(fdconnection); */
+        /*     return 1; */
+        /* } */
+        if (write(fdconnection, response, response_length) != response_length) 
         {
-            std::cerr << "Send error: " << strerror(errno) << std::endl;
-            close(fdconnection);
+            std::cerr << "Write error" << std::endl;
             return 1;
         }
-        /* write(fdconnection, &response, strlen(response)); */
-        /* send(fdconnection, response, strlen(response), 0); */
         close(fdconnection);
     }
     close(ServerFd);
