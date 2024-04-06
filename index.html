@@ -10,7 +10,7 @@
             xhr.open('GET', 'http://localhost:80', true);
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log(xhr.responseText); // Handle the response data
+                    displayResponse(xhr.responseText); // Display the response data
                 } else {
                     console.error('Request failed with status:', xhr.status);
                 }
@@ -20,14 +20,13 @@
             };
             xhr.send();
         }
-
         function sendPOSTRequest() {
             var xhr = new XMLHttpRequest();
             xhr.open('POST', 'http://localhost:80', true);
             xhr.setRequestHeader('Content-Type', 'application/json'); // Set appropriate content type
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log(xhr.responseText); // Handle the response data
+                    displayResponse(xhr.responseText); // Display the response data
                 } else {
                     console.error('Request failed with status:', xhr.status);
                 }
@@ -37,12 +36,48 @@
             };
             xhr.send(JSON.stringify({ key: 'value' })); // Set your POST data here
         }
+        function displayResponse(responseContent) {
+            document.getElementById("response-container").innerText = responseContent;
+        }
+
+        // function sendGETRequest() {
+        //     var xhr = new XMLHttpRequest();
+        //     xhr.open('GET', 'http://localhost:80', true);
+        //     xhr.onload = function() {
+        //         if (xhr.status >= 200 && xhr.status < 300) {
+        //             console.log(xhr.responseText); // Handle the response data
+        //         } else {
+        //             console.error('Request failed with status:', xhr.status);
+        //         }
+        //     };
+        //     xhr.onerror = function() {
+        //         console.error('Request failed');
+        //     };
+        //     xhr.send();
+        // }
+        //
+        // function sendPOSTRequest() {
+        //     var xhr = new XMLHttpRequest();
+        //     xhr.open('POST', 'http://localhost:80', true);
+        //     xhr.setRequestHeader('Content-Type', 'application/json'); // Set appropriate content type
+        //     xhr.onload = function() {
+        //         if (xhr.status >= 200 && xhr.status < 300) {
+        //             console.log(xhr.responseText); // Handle the response data
+        //         } else {
+        //             console.error('Request failed with status:', xhr.status);
+        //         }
+        //     };
+        //     xhr.onerror = function() {
+        //         console.error('Request failed');
+        //     };
+        //     xhr.send(JSON.stringify({ key: 'value' })); // Set your POST data here
+        // }
     </script>
 </head>
 
 <body>
     <button onclick="sendGETRequest()">Send GET Request</button>
     <button onclick="sendPOSTRequest()">Send POST Request</button>
+    <div id="response-container"></div> <!-- Container for displaying response -->
 </body>
-
 </html>

@@ -2,7 +2,7 @@ NAME = webserver
 
 SRCS = main.cpp
 
-CC = c++ -std=c++98
+CC = c++ 
 
 CFLAGS = -Wall -Werror -Wextra
 
