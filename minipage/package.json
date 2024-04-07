@@ -1,15 +1,16 @@
 {
-  "name": "webserver",
+  "name": "minipage",
   "version": "1.0.0",
   "description": "",
+  "main": "index.js",
   "scripts": {
-        "start": "live-server",
+    "start": "live-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "live-server": "^1.2.2"
   }
 }

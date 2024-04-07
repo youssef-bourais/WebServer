@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/07 20:42:26 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/07 22:42:13 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,12 +30,14 @@ class HttpServer
         int FdConnection;
         SA Address;
         char RecivedRequest[MAXLEN + 1];
+        /* HttpRequest *Request; */
     public:
         HttpServer();
         ~HttpServer();
         HttpServer &operator=(HttpServer const &s);
         HttpServer(HttpServer const &src);
 
+        std::string GetRequest() const;
 
         void ForceReuse() const;
         void BindSocketToAddr() const;
@@ -43,6 +45,11 @@ class HttpServer
         void AccepteConnectionAndRecive();
         void SendResponse() const;
 };
+
+std::string HttpServer::GetRequest() const
+{
+    return this->RecivedRequest;
+}
 
 HttpServer::HttpServer()
 {
@@ -56,6 +63,7 @@ HttpServer::HttpServer()
     Address.sin_addr.s_addr = htonl(INADDR_ANY); // we use htonl to convert the INADDR_ANY constant to network byte order
     Address.sin_port = htons(PORT);
     memset(RecivedRequest, 0, MAXLEN);
+    /* this->Request = new HttpRequest(); */
 }
 
 HttpServer::~HttpServer()
