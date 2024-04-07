@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   header.hpp                                         :+:      :+:    :+:   */
+/*   HttpRequest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/05 20:35:47 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/05 23:11:18 by ybourais         ###   ########.fr       */
+/*   Created: 2024/04/07 20:38:06 by ybourais          #+#    #+#             */
+/*   Updated: 2024/04/07 20:39:11 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,6 @@
 
 /*parssing the request*/
 /* HTTP method, requested URL, headers, and request body */
-
-
 
 struct KeyValue 
 {
@@ -46,3 +44,5 @@ class HttpRequest
         const std::string HttpVersion() const;
 
 };
+
+
