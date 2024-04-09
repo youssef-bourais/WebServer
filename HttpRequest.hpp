@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:38:06 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/07 23:34:05 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/08 20:31:19 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ class HttpRequest
 {
     private:
         std::list<KeyValue> HttpHeaders;
-        std::string RecivedLine;
+        const std::string RecivedLine;
     public:
         HttpRequest();
         HttpRequest(std::string RecivedLine);
@@ -38,41 +38,66 @@ class HttpRequest
         HttpRequest &operator=(HttpRequest const &s);
         HttpRequest(HttpRequest const &src);
         
+    
+        void PrintHeaders() const;
         const std::string HttpMethod() const;
         const std::string Path() const;
         const std::string HttpVersion() const;
 
 };
 
-
-HttpRequest::HttpRequest(std::string RecivedLine)
+std::list<KeyValue> InitHttpheaders(std::string Line)
 {
-    int start_pos = RecivedLine.find("\r\n") + 1;
+    std::list<KeyValue> headers;
+    int start_pos = Line.find("\r\n") + 1;
     std::string tmp;
-    while (start_pos < (int)RecivedLine.length()) 
-    {
-        if(RecivedLine[start_pos] == '\r')
-        {
 
+    while (start_pos < (int)Line.length()) 
+    {
+        if(Line[start_pos] == '\r')
+        {
             start_pos += 2;
             unsigned long del = tmp.find(":");
             if(del == std::string::npos)
                 continue;
             std::string key = tmp.substr(0, del);
-            std::string value = tmp.substr(del + 1, tmp.length());
-            std::cout << key<< " "<< value<< std::endl;
-
+            std::string value = tmp.substr(del + 2, tmp.length());
+            headers.push_back(KeyValue(key,value));
             tmp = "";
             continue;
         }
-        tmp += RecivedLine[start_pos];
+        tmp += Line[start_pos];
         start_pos++;
-
     }
+    return headers;
+}
 
+HttpRequest::HttpRequest(std::string RecivedLine)
+{
+    this->HttpHeaders = InitHttpheaders(RecivedLine);
 }
 
 HttpRequest::~HttpRequest()
 {
 
+}
+
+
+void HttpRequest::PrintHeaders() const
+{
+    std::list<KeyValue>::const_iterator it = HttpHeaders.begin();
+    while (it != HttpHeaders.end()) 
+    {
+        std::cout << it->HttpHeader<< ":"<< it->HttpValue<<std::endl;
+        it++;
+    }
+
+}
+
+const std::string HttpRequest::HttpMethod() const
+{
+    int pos = RecivedLine.find(' ');
+    std::string Method = RecivedLine.substr(0, pos); 
+    std::cout << Method<<std::endl;
+    return(Method);
 }

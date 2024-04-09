@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/07 23:26:43 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/08 20:18:17 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,11 @@ int main()
         while(1)
         {
             Server.AccepteConnectionAndRecive();
-            std::cout << Server.GetRequest()<<std::endl;;
+            /* std::cout << Server.GetRequest()<<std::endl;; */
             HttpRequest Request(Server.GetRequest());
             Server.SendResponse();
+            /* Request.PrintHeaders(); */
+            std::cout << Request.HttpMethod();
 
         }
 
