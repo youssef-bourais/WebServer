@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/17 17:36:33 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/18 15:49:25 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,22 +33,7 @@ int main()
             Server.AccepteConnectionAndRecive();
             HttpRequest Request(Server.GetRequest());
             Server.SendResponse();
-            
-            std::cout << "full request :"<<std::endl;
-            Request.PrintRequest();
-            std::cout << "http headers :"<< std::endl;
-            Request.PrintHeaders();
-            
-            std::cout << "http method :"<<std::endl;
-            std::cout <<Request.HttpMethod()<<std::endl;
-            
-            std::cout << "http version"<<std::endl;
-            std::cout << Request.HttpVersion()<<::std::endl;
-            
-            std::cout << "path :"<<std::endl;
-            std::cout << Request.Path()<< std::endl;
         }
-
     } 
     catch (std::runtime_error& e) 
     {

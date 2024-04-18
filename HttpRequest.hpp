@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:38:06 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/17 17:30:34 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/18 15:49:21 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <list>
 #include <ostream>
 #include <regex>
-#define MAXLEN 8024
+#define MAXLEN 8192
 
 /*parssing the request*/
 /* HTTP method, requested URL, headers, and request body */
