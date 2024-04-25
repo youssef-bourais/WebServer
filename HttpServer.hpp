@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/08 19:53:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/24 19:18:29 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 #include <sys/socket.h>
 #include <iostream>
  #include <unistd.h>
-#include "HttpRequest.hpp"
+/* #include "HttpRequest.hpp" */
 
+#define MAXLEN 8192
 #define SA struct sockaddr_in
 #define PORT 80
 
@@ -43,7 +44,7 @@ class HttpServer
         void BindSocketToAddr() const;
         void StartListining(int PendingConection) const;
         void AccepteConnectionAndRecive();
-        void SendResponse() const;
+        void SendResponse(std::string Response) const;
 };
 
 std::string HttpServer::GetRequest() const
@@ -88,7 +89,6 @@ void HttpServer::BindSocketToAddr() const
     {
         throw std::runtime_error(std::string("bind: ") + strerror(errno));
     }
-
 }
 
 void HttpServer::StartListining(int PendingConection) const
@@ -101,8 +101,7 @@ void HttpServer::StartListining(int PendingConection) const
 
 void HttpServer::AccepteConnectionAndRecive()
 {
-    std::cout << "waiting for conection on Port: " << PORT <<std::endl;
-    // extracts the first connection request on the queue of pending connections for the listening socket
+    std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
     this->FdConnection = accept(ServerFd, (struct sockaddr *)NULL, NULL);
     if(FdConnection < 0)
     {
@@ -115,8 +114,9 @@ void HttpServer::AccepteConnectionAndRecive()
     }
 }
 
-void HttpServer::SendResponse() const
+void HttpServer::SendResponse(std::string Response) const
 {
+    (void)Response;
     std::string response = "HTTP/1.1 200 OK\r\n";
     response += "Content-Type: text/html\r\n";
     response += "\r\n";
@@ -125,9 +125,10 @@ void HttpServer::SendResponse() const
     response += "Hi Mom\n";
     response += "</body>\n";
     response += "</html>\n";
+    std::cout << "|"<<Response<< "|"<<std::endl;
     
-    int response_length = strlen(response.c_str());
-    if(write(FdConnection, response.c_str(), response_length) != response_length) 
+    int response_length = strlen(Response.c_str());
+    if(write(FdConnection, Response.c_str(), response_length) != response_length) 
     {
         throw std::runtime_error(std::string("write to FdConnection:"));
     }

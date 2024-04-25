@@ -1,6 +1,6 @@
 NAME = webserver
 
-SRCS = main.cpp HttpRequest.cpp HttpResponse.cpp
+SRCS = main.cpp #HttpRequest.cpp HttpResponse.cpp
 
 CC = c++ 
 
