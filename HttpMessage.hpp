@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created1  2024/04/20 13:09:21 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/24 17:48:12 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/01 18:32:39 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void HttpMessage::PrintRequest() const
 std::list<KeyValue> InitHttpheaders(std::string Line)
 {
     std::list<KeyValue> headers;
-    int start_pos = Line.find("\r\n") + 1;
+    int start_pos = Line.find("\r\n") + 2;
     std::string tmp;
 
     while (start_pos < (int)Line.length()) 

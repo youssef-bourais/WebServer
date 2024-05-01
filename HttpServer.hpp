@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/24 19:18:29 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/01 18:29:07 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 #include <iostream>
  #include <unistd.h>
 /* #include "HttpRequest.hpp" */
+
+#include "HttpResponse.hpp"
 
 #define MAXLEN 8192
 #define SA struct sockaddr_in
@@ -44,7 +46,7 @@ class HttpServer
         void BindSocketToAddr() const;
         void StartListining(int PendingConection) const;
         void AccepteConnectionAndRecive();
-        void SendResponse(std::string Response) const;
+        void SendResponse(HttpResponse const &Response) const;
 };
 
 std::string HttpServer::GetRequest() const
@@ -114,21 +116,15 @@ void HttpServer::AccepteConnectionAndRecive()
     }
 }
 
-void HttpServer::SendResponse(std::string Response) const
+void HttpServer::SendResponse(const HttpResponse &Response) const
 {
-    (void)Response;
-    std::string response = "HTTP/1.1 200 OK\r\n";
-    response += "Content-Type: text/html\r\n";
-    response += "\r\n";
-    response += "<html>\n";
-    response += "<body>\n";
-    response += "Hi Mom\n";
-    response += "</body>\n";
-    response += "</html>\n";
-    std::cout << "|"<<Response<< "|"<<std::endl;
+    std::string FinalResponse = Response.GetHttpVersion() + " " + Response.HTTPStatusCodeToString() + " " + Response.GetHttpStatusMessage() + "\r\n";
+    FinalResponse += "Content-Type: text/html\r\n";
+    FinalResponse += "\r\n";
+    FinalResponse += Response.GetResponseBody();
     
-    int response_length = strlen(Response.c_str());
-    if(write(FdConnection, Response.c_str(), response_length) != response_length) 
+    int response_length = strlen(FinalResponse.c_str());
+    if(write(FdConnection, FinalResponse.c_str(), response_length) != response_length) 
     {
         throw std::runtime_error(std::string("write to FdConnection:"));
     }

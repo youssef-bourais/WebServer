@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:38:06 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/24 15:38:32 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/04/26 17:16:56 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 #define MAXLEN 8192
 
 #include "HttpMessage.hpp"
-
 
 class HttpRequest : public HttpMessage
 {
@@ -31,7 +30,6 @@ class HttpRequest : public HttpMessage
         std::string GetHttpMethod() const;
         std::string GetPath() const;
 };
-
 
 HttpRequest::~HttpRequest()
 {
