@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:36 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/01 18:21:14 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/01 19:50:01 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,29 +101,42 @@ int CheckIfFileExists(std::string FilePath)
     return 0;
 }
 
+std::string ReadFile(std::string FilePath)
+{
+    int fd;
+    std::string FileToOpen = "." + FilePath;
+    if((fd = open(FileToOpen.c_str(), O_RDONLY)) == -1)
+    {
+        close(fd);
+        throw std::runtime_error(std::string("server: opening file:"));
+    }
+    struct stat st;
+    stat(FileToOpen.c_str(), &st);
+    int FileSize = st.st_size;
+    char Resource[FileSize + 1];
+    
+    memset(Resource, 0, FileSize + 1);
+    int r = read(fd, Resource, FileSize);
+    if(r == -1)
+    {
+        close(fd);
+        throw std::runtime_error(std::string("server: reading file:"));
+
+    }
+    close(fd);
+    return Resource;
+}
+
+
 std::string GetResource(const HttpRequest &Request)
 {
+    std::string Resource;
     if(Request.GetHttpMethod() == "GET")
     {
-        int fd;
-        std::string FileToOpen = "." + Request.GetPath();
         if(CheckIfFileExists(Request.GetPath()))
-        {
-            if((fd = open(FileToOpen.c_str(), O_RDONLY)) == -1)
-                throw std::runtime_error(std::string("server: opening file:"));
-            struct stat st;
-            stat(FileToOpen.c_str(), &st);
-            int FileSize = st.st_size;
-            char Resource[FileSize + 1];
-            
-            memset(Resource, 0, FileSize + 1);
-            int r = read(fd, Resource, FileSize);
-            if(r == -1)
-                throw std::runtime_error(std::string("server: reading file:"));
-            return Resource;
-        }
+            Resource = ReadFile(Request.GetPath());
         else 
-            return "HTTP_NOT_FOUND";
+            return "";
     }
     else if(Request.GetHttpMethod() == "POST")
     {
@@ -133,7 +146,7 @@ std::string GetResource(const HttpRequest &Request)
     {
 
     }
-    return "HTTP_METHOD_NOT_ALLOWED";
+    return Resource;
 }
 
 std::string HttpResponse::GetResponseBody() const
