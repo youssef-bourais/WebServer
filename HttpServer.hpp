@@ -6,13 +6,14 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/01 19:32:11 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/02 18:06:14 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <cstring>
+#include <list>
 #include <netinet/in.h> // struct sockaddr_in
 #include <sys/errno.h>
 #include <sys/socket.h>
@@ -20,6 +21,7 @@
  #include <unistd.h>
 /* #include "HttpRequest.hpp" */
 
+#include "HttpMessage.hpp"
 #include "HttpResponse.hpp"
 
 #define MAXLEN 8192
@@ -116,10 +118,18 @@ void HttpServer::AccepteConnectionAndRecive()
     }
 }
 
+#define SP " "
+
 void HttpServer::SendResponse(const HttpResponse &Response) const
 {
-    std::string FinalResponse = Response.GetHttpVersion() + " " + Response.HTTPStatusCodeToString() + " " + Response.GetHttpStatusMessage() + "\r\n";
-    FinalResponse += "Content-Type: text/html\r\n";
+    std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
+    std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
+    std::list<KeyValue>::const_iterator itend = Response.GetHeadersEnd();
+    while(it != itend)
+    {
+        FinalResponse += it->HttpHeader + it->HttpValue + '\n';
+        it++;
+    }
     FinalResponse += "\r\n";
     FinalResponse += Response.GetResponseBody();
     

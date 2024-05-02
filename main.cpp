@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/01 18:33:40 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/02 16:02:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,30 @@ int main()
     }
     return 0;
 }
+
+/**/
+/* #include <stdio.h> */
+/* #include <dirent.h> */
+/**/
+/* int main()  */
+/* { */
+/*     DIR *dir; */
+/*     struct dirent *entry; */
+/**/
+/*     dir = opendir("./minipage/"); */
+/*     if (dir == NULL)  */
+/*     { */
+/*         perror("opendir"); */
+/*         return 1; */
+/*     } */
+/*     while ((entry = readdir(dir)) != NULL)  */
+/*     { */
+/*         printf("%s\n", entry->d_name); */
+/*     } */
+/**/
+/*     closedir(dir); */
+/*     return 0; */
+/* } */
 
 
 
