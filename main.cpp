@@ -6,15 +6,33 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/02 16:02:06 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/03 13:57:00 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "HttpServer.hpp"
-#include "HttpMessage.hpp"
 #include "HttpRequest.hpp"
 
+
+
+
+void PrintRequestInfo(const HttpRequest &Request)
+{
+    std::cout << std::endl<<"++++++++++++++++++| Http  Method |++++++++++++++++"<<std::endl;
+    std::cout<< Request.GetHttpMethod()<<std::endl;
+    std::cout << std::endl<<"++++++++++++++++++|  Http   URI  |++++++++++++++++"<<std::endl;
+    std::cout << Request.GetPath()<<std::endl;
+    std::cout << std::endl<<"++++++++++++++++++| Http Version |++++++++++++++++"<<std::endl;
+    std::cout << Request.GetHttpVersion()<<std::endl;
+    std::cout << std::endl<<"++++++++++++++++++| Http Headers |++++++++++++++++"<<std::endl;
+    Request.PrintHeaders();
+    std::cout << std::endl<<"++++++++++++++++++|  Http  Body  |++++++++++++++++"<<std::endl;
+    if(Request.GetBody().empty())
+        std::cout << "No Body :("<<std::endl;
+    else
+        std::cout << Request.GetBody()<<std::endl;
+}
 
 int main() 
 {
@@ -28,9 +46,12 @@ int main()
         {
             Server.AccepteConnectionAndRecive();
             HttpRequest Request(Server.GetRequest());
-            Request.PrintRequest();
-            HttpResponse Response(Request);
 
+            Request.PrintRequest();
+            PrintRequestInfo(Request);
+
+            HttpResponse Response(Request);
+            
             Server.SendResponse(Response);
         }
     } 

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:36 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/02 18:08:27 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/03 14:04:36 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,11 +102,14 @@ std::string HttpResponse::HTTPStatusCodeToString() const
     return oss.str();
 }
 
-int CheckIfFileExists(std::string FilePath)
+int CheckIfResourceExists(std::string FilePath)
 {
     std::string tmp = "." + FilePath;
     if (access(tmp.c_str(), F_OK) != -1) 
+    {
+        std::cout << tmp<<std::endl;
         return 1;
+    }
     return 0;
 }
 
@@ -142,13 +145,22 @@ std::string ReadFile(std::string FilePath)
 }
 
 
+std::string OpenDir()
+{
+
+    return "";
+}
+
 std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
 {
     std::string Resource;
     if(Request.GetHttpMethod() == "GET")
     {
-        if(CheckIfFileExists(Request.GetPath()))
+        if(CheckIfResourceExists(Request.GetPath()) && Request.GetPath() != "/")
+        {
+            Resource = OpenDir();
             Resource = ReadFile(Request.GetPath());
+        }
         else 
         {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);

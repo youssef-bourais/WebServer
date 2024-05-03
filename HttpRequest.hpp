@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:38:06 by ybourais          #+#    #+#             */
-/*   Updated: 2024/04/26 17:16:56 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/03 14:14:28 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,57 @@ std::string GetMethod(std::string RecivedLine)
     return(Method);
 }
 
+#include <sys/stat.h>
+
+int FileOrDir(std::string Path)
+{
+    struct stat s;
+    if( stat(Path.c_str(),&s) == 0)
+    {
+        if( s.st_mode & S_IFDIR)
+        {
+            // it's a directory
+            return 1;
+        }
+        else if( s.st_mode & S_IFREG)
+        {
+            // it's a file
+            return 0;
+        }
+    }
+    else
+    {
+        // error
+        return -1;
+    }
+}
+
+void NormalizePath(std::string &Path)
+{
+
+    std::string Cor;
+    int i = 0;
+    while (Path[i]) 
+    {
+        Cor += Path[i];
+        if (Path[i] == '/') 
+        {
+            while (Path[i] == '/') 
+                i++;
+            continue;
+        }
+        i++;
+    }
+    Path = Cor;
+}
+
+
 std::string getPath(std::string RecivedLine)
 {
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
+    NormalizePath(path);
     return path;
 }
 

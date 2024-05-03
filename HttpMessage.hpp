@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created1  2024/04/20 13:09:21 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/02 14:13:38 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/03 13:50:12 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,7 @@ std::string HttpMessage::GetHttpVersion() const
 
 void HttpMessage::PrintRequest() const
 {
+    std::cout << std::endl<<"++++++++++++++++++| Full Request |++++++++++++++++"<<std::endl;
     std::cout << this->RecivedLine;
 }
 
