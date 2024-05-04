@@ -6,15 +6,13 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/03 13:57:00 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/04 15:07:26 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "HttpServer.hpp"
 #include "HttpRequest.hpp"
-
-
 
 
 void PrintRequestInfo(const HttpRequest &Request)
@@ -27,9 +25,9 @@ void PrintRequestInfo(const HttpRequest &Request)
     std::cout << Request.GetHttpVersion()<<std::endl;
     std::cout << std::endl<<"++++++++++++++++++| Http Headers |++++++++++++++++"<<std::endl;
     Request.PrintHeaders();
-    std::cout << std::endl<<"++++++++++++++++++|  Http  Body  |++++++++++++++++"<<std::endl;
+    std::cout << std::endl<<"++++++++++++++++++|  Http Request Body  |++++++++++++++++"<<std::endl;
     if(Request.GetBody().empty())
-        std::cout << "No Body :("<<std::endl;
+        std::cout << "No Body in Request :("<<std::endl;
     else
         std::cout << Request.GetBody()<<std::endl;
 }
@@ -51,7 +49,9 @@ int main()
             PrintRequestInfo(Request);
 
             HttpResponse Response(Request);
-            
+
+            std::cout <<Response.GetResponseBody()<<std::endl;
+
             Server.SendResponse(Response);
         }
     } 
