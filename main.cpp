@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/04 15:40:46 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/04 18:40:33 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,11 @@ int main()
             HttpRequest Request(Server.GetRequest());
 
             Request.PrintRequest();
-            PrintRequestInfo(Request);
+            /* PrintRequestInfo(Request); */
 
             HttpResponse Response(Request);
 
-            std::cout <<Response.GetResponseBody()<<std::endl;
+            /* std::cout <<Response.GetResponseBody()<<std::endl; */
 
             Server.SendResponse(Response);
         }
@@ -62,30 +62,4 @@ int main()
     }
     return 0;
 }
-
-/**/
-/* #include <stdio.h> */
-/* #include <dirent.h> */
-/**/
-/* int main()  */
-/* { */
-/*     DIR *dir; */
-/*     struct dirent *entry; */
-/**/
-/*     dir = opendir("./minipage/"); */
-/*     if (dir == NULL)  */
-/*     { */
-/*         perror("opendir"); */
-/*         return 1; */
-/*     } */
-/*     while ((entry = readdir(dir)) != NULL)  */
-/*     { */
-/*         printf("%s\n", entry->d_name); */
-/*     } */
-/**/
-/*     closedir(dir); */
-/*     return 0; */
-/* } */
-
-
 

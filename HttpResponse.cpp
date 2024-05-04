@@ -6,11 +6,13 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/04 15:43:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/04 19:10:33 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
+#include <cstdio>
+#include <sys/_types/_s_ifmt.h>
 
 std::string GetDayName(int n) 
 {
@@ -34,7 +36,6 @@ std::string GetDayName(int n)
             return "Invalid day of week";
     }
 }
-
 
 std::string GetMonthName(int n) 
 {
@@ -154,7 +155,7 @@ std::string ReadFile(std::string FilePath)
     if((fd = open(FileToOpen.c_str(), O_RDONLY)) == -1)
     {
         close(fd);
-        throw std::runtime_error(std::string("server: opening file:"));
+        throw std::runtime_error(std::string("server: unable opening file:"));
     }
     char Resource[GetFileSize(FilePath) + 1];
     
@@ -163,23 +164,17 @@ std::string ReadFile(std::string FilePath)
     if(r == -1)
     {
         close(fd);
-        throw std::runtime_error(std::string("server: reading file:"));
+        throw std::runtime_error(std::string("server: unable reading file:"));
     }
     close(fd);
     return Resource;
 }
 
-
-std::string OpenDir()
-{
-    return "Not listing Dir Yet";
-}
-
-
 int FileOrDir(std::string Path)
 {
     struct stat s;
-    if( stat(Path.c_str(),&s) == 0)
+    std::string tmp = "." + Path;
+    if(!stat(tmp.c_str(),&s))
     {
         if(s.st_mode & S_IFDIR)
             return 1;
@@ -189,6 +184,37 @@ int FileOrDir(std::string Path)
     return -1;
 }
 
+#include <dirent.h>
+
+std::string OpenDir(std::string Dir)
+{
+    DIR *dir;
+
+    std::string tmp = "." + Dir;
+    dir = opendir(tmp.c_str());
+
+    if(!dir)
+        throw std::runtime_error(std::string("server: unable to open directory:"));
+
+    struct dirent *entry;
+
+    std::string List;
+    while((entry = readdir(dir)))
+    {
+        if(entry->d_name[0] != '.')
+        {
+            std::string newline = "\n";
+            List += entry->d_name + newline;
+            std::string PathOfReource = Dir + entry->d_name;
+            if(FileOrDir(PathOfReource)) 
+                printf("Dir: %s\n", entry->d_name);
+            else 
+                printf("File: %s\n", entry->d_name);
+        }
+    }
+    closedir(dir);
+    return List;
+}
 
 std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
 {
@@ -200,9 +226,10 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
     {
         if(CheckIfResourceExists(Uri) && Uri != "/")
         {
-            if(FileOrDir(Uri))
-                Resource = OpenDir();
-            else if(!FileOrDir(Uri))
+            int var = FileOrDir(Uri);
+            if(var)
+                Resource = OpenDir(Uri);
+            else if(!var)
                 Resource = ReadFile(Uri);
         }
         else 
@@ -294,7 +321,6 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
         Value = Getlenth(Request.GetPath());
         tmp.push_back(KeyValue(key, Value));
     }
-        
     key = "Allow: ";
     Value = "GET, POST, DELETE";
     tmp.push_back(KeyValue(key, Value));
