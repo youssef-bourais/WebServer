@@ -6,16 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/04 15:28:33 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/05/04 15:40:05 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
 
-std::string HttpServer::GetRequest() const
-{
-    return this->RecivedRequest;
-}
 
 HttpServer::HttpServer()
 {
@@ -35,6 +31,11 @@ HttpServer::HttpServer()
 HttpServer::~HttpServer()
 {
     close(ServerFd);
+}
+
+std::string HttpServer::GetRequest() const
+{
+    return this->RecivedRequest;
 }
 
 void HttpServer::ForceReuse() const
