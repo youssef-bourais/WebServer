@@ -6,13 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/05/05 13:34:49 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/06 00:40:08 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include <cstdio>
-#include <sys/_types/_s_ifmt.h>
 
 std::string GetDayName(int n) 
 {
@@ -104,7 +103,7 @@ HttpResponse &HttpResponse::operator=(const HttpResponse &s)
     return *this;
 }
 
-HttpResponse::HttpResponse(const HttpResponse& copy) 
+HttpResponse::HttpResponse(const HttpResponse& copy) : HttpMessage(copy) 
 {
     *this = copy;
 }
@@ -268,21 +267,21 @@ HTTPStatusCode GetHttpStatusCode(const HttpRequest &Request, const HttpResponse 
 
 
 
-std::string GetDate()
-{
-    std::time_t currentTime = std::time(NULL);
-
-    std::tm* timeinfo = std::gmtime(&currentTime);
-
-    std::stringstream ss;
-
-    ss << GetDayName(timeinfo->tm_wday)  << ", "
-       << timeinfo->tm_mday << " "
-       << GetMonthName(timeinfo->tm_mon) << " "
-       << (timeinfo->tm_year + 1900) << " "
-       << timeinfo->tm_hour << ":"
-       << timeinfo->tm_min << ":"
-       << timeinfo->tm_sec << " GMT";
+/* std::string GetDate() */
+/* { */
+/*     std::time_t currentTime = std::time(NULL); */
+/**/
+/*     std::tm* timeinfo = std::gmtime(&currentTime); */
+/**/
+/*     std::stringstream ss; */
+/**/
+/*     ss << GetDayName(timeinfo->tm_wday)  << ", " */
+/*        << timeinfo->tm_mday << " " */
+/*        << GetMonthName(timeinfo->tm_mon) << " " */
+/*        << (timeinfo->tm_year + 1900) << " " */
+/*        << timeinfo->tm_hour << ":" */
+/*        << timeinfo->tm_min << ":" */
+/*        << timeinfo->tm_sec << " GMT"; */
 
     /* std::cout << "date: "<< ss.str()<<std::endl; */
     /* std::time_t currenttime = std::time(null); */
@@ -291,9 +290,18 @@ std::string GetDate()
     /**/
     /* std::strftime(buffer, sizeof(buffer), "date: %a, %d %b %y %h:%m:%s gmt", timeinfo); */
 
-    return ss.str();
-}
+/*     return ss.str(); */
+/* } */
+#include <ctime>  
 
+std::string GetDate() {
+    time_t currentTime = std::time(NULL); // Correctly use time_t without std::
+    tm* timeinfo = std::gmtime(&currentTime); // Correctly use tm and gmtime without std::
+
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
+    return std::string(buffer);
+}
 std::string Getlenth(std::string File)
 {
     std::stringstream ss;
