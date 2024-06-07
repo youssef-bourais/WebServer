@@ -6,11 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 23:09:06 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/07 23:37:30 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
+#include "Tools.hpp"
 
 
 HttpRequest::~HttpRequest()
@@ -46,31 +47,28 @@ void NormalizePath(std::string &Path)
 
 void GetRealPath(std::string &path)
 {
-    std::string tmp;
     if(path.length() == 1)
         return;
     else 
     {
-        int i = 1;
-        while(i < (int)path.length())
-        {
-            tmp += path[i];
-            i++;
-        }
+        std::string tmp = path.substr(1); // remove the first slash /
         int value = checkFileType(tmp);
         if(value == FILE_TYPE)
-        {
-            std::cout << "file"<<std::endl;
-        }
+            path = tmp;
         else if(value == DIR_TYPE)
         {
             if(tmp.back() != '/')
                 tmp += '/';
-            std::cout << "dir"<<std::endl;
         }
         else 
         {
-            ImOut("hello");
+            if (!tmp.empty() && tmp.back() == '/') 
+                tmp.pop_back();
+            value = checkFileType(tmp);
+            if(value == FILE_TYPE)
+                path = tmp;
+            else 
+                ImOut("not found");
         }
         path = tmp;
     }
@@ -83,8 +81,8 @@ std::string getPath(std::string RecivedLine)
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
     // std::cout <<"before: "<< path<<std::endl;
     NormalizePath(path);
-    GetRealPath(path);
     std::cout <<"Uri "<< path<<std::endl;
+    GetRealPath(path);
     return path;
 }
 

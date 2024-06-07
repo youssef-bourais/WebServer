@@ -11,9 +11,3 @@
 int checkFileType(const std::string &path); 
 void ImOut(std::string msg);
 
-
-void ImOut(std::string msg)
-{
-    std::cout << msg<<std::endl;
-    exit(0);
-}
