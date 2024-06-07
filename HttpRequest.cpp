@@ -6,12 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 20:21:04 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/07 23:09:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
-#include "Tools.hpp"
+
 
 HttpRequest::~HttpRequest()
 {
@@ -44,12 +44,6 @@ void NormalizePath(std::string &Path)
     Path = Cor;
 }
 
-void ImOut(std::string msg)
-{
-    std::cout << msg<<std::endl;
-    exit(0);
-}
-
 void GetRealPath(std::string &path)
 {
     std::string tmp;
@@ -70,13 +64,15 @@ void GetRealPath(std::string &path)
         }
         else if(value == DIR_TYPE)
         {
+            if(tmp.back() != '/')
+                tmp += '/';
             std::cout << "dir"<<std::endl;
         }
         else 
         {
             ImOut("hello");
         }
-    
+        path = tmp;
     }
 }
 

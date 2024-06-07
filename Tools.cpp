@@ -18,3 +18,6 @@ int checkFileType(const std::string &path)
     }
     return UNKNOWN_TYPE;
 }
+
+
+
