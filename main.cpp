@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 01:55:41 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/07 19:48:59 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int main()
             Server.AccepteConnectionAndRecive();
             HttpRequest Request(Server.GetRequest());
             Request.PrintRequest();
-            PrintRequestInfo(Request);
+            // PrintRequestInfo(Request);
             HttpResponse Response(Request);
             /* std::cout <<Response.GetResponseBody()<<std::endl; */
             Server.SendResponse(Response);
@@ -59,3 +59,58 @@ int main()
     return 0;
 }
 
+#include <sys/stat.h>
+#include <string>
+#include <dirent.h>
+#include <iostream>
+
+#define FILE_TYPE 0
+#define DIR_TYPE 1
+#define UNKNOWN_TYPE -1
+
+// int checkFileType(const std::string &path) 
+// {
+//     struct stat s;
+//     if (stat(path.c_str(), &s) == 0) 
+//     {
+//         if (s.st_mode & S_IFDIR)
+//             return DIR_TYPE;
+//         else if (s.st_mode & S_IFREG)
+//             return FILE_TYPE;
+//     }
+//     return UNKNOWN_TYPE;
+// }
+
+// void listDirectoryContents(const std::string &dirPath) 
+// {
+//     DIR *dir;
+//     struct dirent *entry;
+//
+//     if ((dir = opendir(dirPath.c_str())) != NULL) 
+//     {
+//         while ((entry = readdir(dir)) != NULL) 
+//         {
+//             std::string entryName = entry->d_name;
+//             if (entryName == "." || entryName == "..") 
+//                 continue;
+//             std::string fullPath = dirPath + "/" + entryName;
+//             int type = checkFileType(fullPath);
+//
+//             if (type == DIR_TYPE) 
+//                 std::printf("Dir: %s\n", entryName.c_str());
+//             else if (type == FILE_TYPE) 
+//                 std::printf("File: %s\n", entryName.c_str());
+//             else
+//                 std::printf("Unknown: %s\n", entryName.c_str());
+//         }
+//         closedir(dir);
+//     }
+//     else 
+//         perror("Unable to open directory");
+// }
+
+// int main() {
+//     std::string dirPath = "minipage/";
+//     listDirectoryContents(dirPath);
+//     return 0;
+// }

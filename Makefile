@@ -1,6 +1,6 @@
 NAME = webserver
 
-SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp
+SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp Tools.cpp
 
 CC = c++ -std=c++98
 
@@ -13,7 +13,7 @@ OBJS = ${SRCS:.cpp=.o}
 
 all : $(NAME)
 
-$(NAME) : $(OBJS) HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Makefile
+$(NAME) : $(OBJS) HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp Makefile
 		$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
 clean :
 	rm -rf $(OBJS)

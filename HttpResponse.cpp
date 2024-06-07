@@ -6,12 +6,11 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 03:29:22 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/07 20:07:46 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
-#include <climits>
 #include <cstdio>
 #include <string>
 
@@ -185,6 +184,22 @@ int FileOrDir(std::string Path)
     return -1;
 }
 
+// int checkFileType(const std::string &path) 
+// {
+//     struct stat s;
+//     std::string tmp = "." + path;
+//     // std::cout << path<<std::endl;
+//     // exit(0);
+//     if (stat(path.c_str(), &s) == 0) 
+//     {
+//         if (s.st_mode & S_IFDIR) 
+//             return 1;
+//         else if (s.st_mode & S_IFREG) 
+//             return 0;
+//     }
+//     return -1;
+// }
+
 #include <dirent.h>
 
 std::string OpenDir(std::string Dir)
@@ -207,10 +222,10 @@ std::string OpenDir(std::string Dir)
             std::string newline = ",";
             List += entry->d_name + newline;
             std::string PathOfReource = Dir + entry->d_name;
-            if(FileOrDir(PathOfReource)) 
-                printf("Dir: %s\n", entry->d_name);
-            else 
-                printf("File: %s\n", entry->d_name);
+            // if(checkFileType(PathOfReource)) 
+            //     printf("Dir: %s\n", entry->d_name);
+            // else 
+            //     printf("File: %s\n", entry->d_name);
         }
     }
     closedir(dir);
@@ -221,16 +236,19 @@ std::string generateListItems(std::string fileAndDirNames)
 {
     std::string listItems;
     size_t pos = 0;
+    // std::cout << fileAndDirNames<<std::endl;
     while ((pos = fileAndDirNames.find(',')) != std::string::npos) 
     {
         std::string name = fileAndDirNames.substr(0, pos);
         listItems += "<li><a href=\"" + name + "\">" + name + "</a></li>\n";
+        fileAndDirNames.erase(0, pos + 1);
     }
     listItems += "<li><a href=\"" + fileAndDirNames + "\">" + fileAndDirNames + "</a></li>\n";
     return listItems;
 }
 
 #include <stdlib.h>
+
 std::string InitPage(std::string List)
 {
     std::string listContent = generateListItems(List);
@@ -290,7 +308,7 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
     {
         if(CheckIfResourceExists(Uri) && Uri != "/")
         {
-            int var = FileOrDir(Uri);
+            int var = checkFileType(Uri);
             if(var)
             {
                 Resource = OpenDir(Uri);
@@ -360,9 +378,11 @@ HTTPStatusCode GetHttpStatusCode(const HttpRequest &Request, const HttpResponse 
 
 /*     return ss.str(); */
 /* } */
+
 #include <ctime>  
 
-std::string GetDate() {
+std::string GetDate() 
+{
     time_t currentTime = std::time(NULL); // Correctly use time_t without std::
     tm* timeinfo = std::gmtime(&currentTime); // Correctly use tm and gmtime without std::
 
@@ -409,6 +429,7 @@ HttpResponse::HttpResponse(const HttpRequest &Request) : HttpMessage(Request.Get
 {
     this->StatusCode = GetHttpStatusCode(Request, *this);
     this->ResponseBody = GetResource(Request, *this);
+    // std::cout << this->ResponseBody<<std::endl;
     this->ResponseHeaders = SetResponseHeaders(*this, Request);
 }
 
