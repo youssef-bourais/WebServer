@@ -6,12 +6,14 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/06 00:40:08 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/07 03:29:22 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
+#include <climits>
 #include <cstdio>
+#include <string>
 
 std::string GetDayName(int n) 
 {
@@ -202,7 +204,7 @@ std::string OpenDir(std::string Dir)
     {
         if(entry->d_name[0] != '.')
         {
-            std::string newline = "\n";
+            std::string newline = ",";
             List += entry->d_name + newline;
             std::string PathOfReource = Dir + entry->d_name;
             if(FileOrDir(PathOfReource)) 
@@ -214,6 +216,69 @@ std::string OpenDir(std::string Dir)
     closedir(dir);
     return List;
 }
+
+std::string generateListItems(std::string fileAndDirNames) 
+{
+    std::string listItems;
+    size_t pos = 0;
+    while ((pos = fileAndDirNames.find(',')) != std::string::npos) 
+    {
+        std::string name = fileAndDirNames.substr(0, pos);
+        listItems += "<li><a href=\"" + name + "\">" + name + "</a></li>\n";
+    }
+    listItems += "<li><a href=\"" + fileAndDirNames + "\">" + fileAndDirNames + "</a></li>\n";
+    return listItems;
+}
+
+#include <stdlib.h>
+std::string InitPage(std::string List)
+{
+    std::string listContent = generateListItems(List);
+
+    std::string htmlContent =
+    "<!DOCTYPE html>\n"
+    "<html lang=\"en\">\n"
+    "<head>\n"
+    "    <meta charset=\"UTF-8\">\n"
+    "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+    "    <title>Directory Listing</title>\n"
+    "    <style>\n"
+    "        body {\n"
+    "            font-family: Arial, sans-serif;\n"
+    "            margin: 20px;\n"
+    "        }\n"
+    "        h1 {\n"
+    "            margin-bottom: 20px;\n"
+    "        }\n"
+    "        ul {\n"
+    "            list-style-type: none;\n"
+    "            padding: 0;\n"
+    "        }\n"
+    "        li {\n"
+    "            margin-bottom: 10px;\n"
+    "        }\n"
+    "        a {\n"
+    "            text-decoration: none;\n"
+    "            color: #007bff;\n"
+    "        }\n"
+    "    </style>\n"
+    "</head>\n"
+    "<body>\n"
+    "    <h1>Directory Listing</h1>\n"
+    "    <ul>\n"
+            + listContent +
+    "    </ul>\n"
+    "</body>\n"
+    "</html>\n";
+    return htmlContent;
+}
+
+void ListDir(std::string &List)
+{
+    std::string HtmlPage = InitPage(List);
+    List = HtmlPage;
+}
+
 
 std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
 {
@@ -227,7 +292,10 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
         {
             int var = FileOrDir(Uri);
             if(var)
+            {
                 Resource = OpenDir(Uri);
+                ListDir(Resource);
+            }
             else if(!var)
                 Resource = ReadFile(Uri);
         }
@@ -302,6 +370,7 @@ std::string GetDate() {
     strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
     return std::string(buffer);
 }
+
 std::string Getlenth(std::string File)
 {
     std::stringstream ss;
