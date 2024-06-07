@@ -2,7 +2,7 @@ NAME = webserver
 
 SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp Tools.cpp
 
-CC = c++ -std=c++98
+CC = c++ -std=c++98 -g -fsanitize=address
 
 CFLAGS = -Wall -Werror -Wextra
 

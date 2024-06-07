@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 23:37:30 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/08 00:07:22 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,9 @@ void NormalizePath(std::string &Path)
     Path = Cor;
 }
 
-void GetRealPath(std::string &path)
+void ParssPath(std::string &path)
 {
+    NormalizePath(path);
     if(path.length() == 1)
         return;
     else 
@@ -54,11 +55,16 @@ void GetRealPath(std::string &path)
         std::string tmp = path.substr(1); // remove the first slash /
         int value = checkFileType(tmp);
         if(value == FILE_TYPE)
+        {
             path = tmp;
+            return ;
+        }
         else if(value == DIR_TYPE)
         {
             if(tmp.back() != '/')
                 tmp += '/';
+            path = tmp;
+            return ;
         }
         else 
         {
@@ -68,9 +74,8 @@ void GetRealPath(std::string &path)
             if(value == FILE_TYPE)
                 path = tmp;
             else 
-                ImOut("not found");
+                path = "";
         }
-        path = tmp;
     }
 }
 
@@ -79,10 +84,7 @@ std::string getPath(std::string RecivedLine)
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
-    // std::cout <<"before: "<< path<<std::endl;
-    NormalizePath(path);
-    std::cout <<"Uri "<< path<<std::endl;
-    GetRealPath(path);
+    ParssPath(path);
     return path;
 }
 
@@ -100,7 +102,6 @@ HttpRequest::HttpRequest(std::string RecivedLine) : HttpMessage(RecivedLine)
 {
     this->HttpMethod = GetMethod(RecivedLine);
     this->Path = getPath(RecivedLine);
-    std::cout <<this->Path<<std::endl;
 }
 
 HttpRequest &HttpRequest::operator=(const HttpRequest &s) 

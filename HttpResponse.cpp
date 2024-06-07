@@ -6,11 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 20:07:46 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/08 00:31:31 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
+#include "Tools.hpp"
 #include <cstdio>
 #include <string>
 
@@ -133,8 +134,7 @@ std::string HttpResponse::HTTPStatusCodeToString() const
 
 int CheckIfResourceExists(std::string FilePath)
 {
-    std::string tmp = "." + FilePath;
-    if (access(tmp.c_str(), F_OK) != -1) 
+    if (access(FilePath.c_str(), F_OK) != -1) 
         return 1;
     return 0;
 }
@@ -142,8 +142,7 @@ int CheckIfResourceExists(std::string FilePath)
 int GetFileSize(std::string Path)
 {
     struct stat st;
-    std::string tmp = "." + Path;
-    stat(tmp.c_str(), &st);
+    stat(Path.c_str(), &st);
     int FileSize = st.st_size;
     return FileSize;
 }
@@ -151,14 +150,13 @@ int GetFileSize(std::string Path)
 std::string ReadFile(std::string FilePath)
 {
     int fd;
-    std::string FileToOpen = "." + FilePath;
+    std::string FileToOpen = FilePath;
     if((fd = open(FileToOpen.c_str(), O_RDONLY)) == -1)
     {
         close(fd);
         throw std::runtime_error(std::string("server: unable opening file:"));
     }
     char Resource[GetFileSize(FilePath) + 1];
-    
     memset(Resource, 0, GetFileSize(FilePath) + 1);
     int r = read(fd, Resource, GetFileSize(FilePath));
     if(r == -1)
@@ -206,7 +204,7 @@ std::string OpenDir(std::string Dir)
 {
     DIR *dir;
 
-    std::string tmp = "." + Dir;
+    std::string tmp = Dir;
     dir = opendir(tmp.c_str());
 
     if(!dir)
@@ -222,10 +220,10 @@ std::string OpenDir(std::string Dir)
             std::string newline = ",";
             List += entry->d_name + newline;
             std::string PathOfReource = Dir + entry->d_name;
-            // if(checkFileType(PathOfReource)) 
-            //     printf("Dir: %s\n", entry->d_name);
-            // else 
-            //     printf("File: %s\n", entry->d_name);
+            if(checkFileType(PathOfReource) == DIR_TYPE) 
+                printf("Dir: %s\n", entry->d_name);
+            else if(checkFileType(PathOfReource) == FILE_TYPE) 
+                printf("File: %s\n", entry->d_name);
         }
     }
     closedir(dir);
@@ -297,7 +295,6 @@ void ListDir(std::string &List)
     List = HtmlPage;
 }
 
-
 std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
 {
     std::string Resource;
@@ -309,16 +306,18 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
         if(CheckIfResourceExists(Uri) && Uri != "/")
         {
             int var = checkFileType(Uri);
-            if(var)
+            if(var == DIR_TYPE)
             {
                 Resource = OpenDir(Uri);
                 ListDir(Resource);
             }
-            else if(!var)
+            else if(var == FILE_TYPE)
                 Resource = ReadFile(Uri);
         }
         else 
+        {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        }
     }
     else if(Method == "POST")
     {
