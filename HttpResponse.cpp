@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/08 00:31:31 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/08 16:24:41 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,6 +134,8 @@ std::string HttpResponse::HTTPStatusCodeToString() const
 
 int CheckIfResourceExists(std::string FilePath)
 {
+    if(FilePath.empty())
+        return 0;
     if (access(FilePath.c_str(), F_OK) != -1) 
         return 1;
     return 0;
@@ -200,7 +202,7 @@ int FileOrDir(std::string Path)
 
 #include <dirent.h>
 
-std::string OpenDir(std::string Dir)
+std::string OpenDir(const std::string &Dir)
 {
     DIR *dir;
 
@@ -215,41 +217,39 @@ std::string OpenDir(std::string Dir)
     std::string List;
     while((entry = readdir(dir)))
     {
+        // need fix
         if(entry->d_name[0] != '.')
         {
-            std::string newline = ",";
-            List += entry->d_name + newline;
+            List += entry->d_name;
             std::string PathOfReource = Dir + entry->d_name;
             if(checkFileType(PathOfReource) == DIR_TYPE) 
-                printf("Dir: %s\n", entry->d_name);
-            else if(checkFileType(PathOfReource) == FILE_TYPE) 
-                printf("File: %s\n", entry->d_name);
+                List += "/";
+            List +=  "\n";
         }
     }
     closedir(dir);
     return List;
 }
 
-std::string generateListItems(std::string fileAndDirNames) 
+std::string generateListItems(const std::string &fileAndDirNames, const std::string &Uri) 
 {
-    std::string listItems;
-    size_t pos = 0;
-    // std::cout << fileAndDirNames<<std::endl;
-    while ((pos = fileAndDirNames.find(',')) != std::string::npos) 
+    std::string Items;
+    std::istringstream Toread(fileAndDirNames);
+    std::string Name;
+    
+    while (std::getline(Toread,Name)) 
     {
-        std::string name = fileAndDirNames.substr(0, pos);
-        listItems += "<li><a href=\"" + name + "\">" + name + "</a></li>\n";
-        fileAndDirNames.erase(0, pos + 1);
+        std::string CompletPath = Uri + Name;
+        Items += "<li><a href=\"" + CompletPath + "\">" + CompletPath + "</a></li>\n";
     }
-    listItems += "<li><a href=\"" + fileAndDirNames + "\">" + fileAndDirNames + "</a></li>\n";
-    return listItems;
+    return Items;
 }
 
 #include <stdlib.h>
 
-std::string InitPage(std::string List)
+std::string InitPage(const std::string &List, const std::string &Uri)
 {
-    std::string listContent = generateListItems(List);
+    std::string listContent = generateListItems(List, Uri);
 
     std::string htmlContent =
     "<!DOCTYPE html>\n"
@@ -289,9 +289,9 @@ std::string InitPage(std::string List)
     return htmlContent;
 }
 
-void ListDir(std::string &List)
+void ListDir(std::string &List, const std::string &Uri)
 {
-    std::string HtmlPage = InitPage(List);
+    std::string HtmlPage = InitPage(List, Uri);
     List = HtmlPage;
 }
 
@@ -309,15 +309,14 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
             if(var == DIR_TYPE)
             {
                 Resource = OpenDir(Uri);
-                ListDir(Resource);
+                ListDir(Resource, Uri);
+                std::cout << Resource<<std::endl;
             }
             else if(var == FILE_TYPE)
                 Resource = ReadFile(Uri);
         }
         else 
-        {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        }
     }
     else if(Method == "POST")
     {
