@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/08 16:24:41 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/08 18:19:49 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -310,7 +310,6 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
             {
                 Resource = OpenDir(Uri);
                 ListDir(Resource, Uri);
-                std::cout << Resource<<std::endl;
             }
             else if(var == FILE_TYPE)
                 Resource = ReadFile(Uri);
@@ -396,8 +395,17 @@ std::string Getlenth(std::string File)
     return  ss.str();
 }
 
+std::string ToString(int num)
+{
+    std::stringstream ss;
+    ss << num;
+    return  ss.str();
+}
+
 std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpRequest &Request)
 {
+    (void)Request;
+    (void)Response;
     std::list<KeyValue> tmp;
     std::string key;
     std::string Value;
@@ -405,15 +413,19 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     key = "Server: ";
     Value = "Ragnar's";
     tmp.push_back(KeyValue(key, Value));
-    
+
+    key = "content-type";
+    Value = "text/html";
+    tmp.push_back(KeyValue(key, Value));
+
     key= "Date: ";
     Value = GetDate();
     tmp.push_back(KeyValue(key, Value));
-    
+
     if(!Response.GetResponseBody().empty())
     {
         key = "Content-Length: ";
-        Value = Getlenth(Request.GetPath());
+        Value = ToString(Response.GetResponseBody().length());
         tmp.push_back(KeyValue(key, Value));
     }
     key = "Allow: ";
