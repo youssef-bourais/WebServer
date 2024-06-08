@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/08 18:19:49 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/08 19:45:29 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,15 +217,13 @@ std::string OpenDir(const std::string &Dir)
     std::string List;
     while((entry = readdir(dir)))
     {
-        // need fix
-        if(entry->d_name[0] != '.')
-        {
-            List += entry->d_name;
-            std::string PathOfReource = Dir + entry->d_name;
-            if(checkFileType(PathOfReource) == DIR_TYPE) 
-                List += "/";
-            List +=  "\n";
-        }
+        // if(entry->d_name == "."|| entry->d_name == "..")
+        //     continue;
+        List += entry->d_name;
+        std::string PathOfReource = Dir + entry->d_name;
+        if(checkFileType(PathOfReource) == DIR_TYPE) 
+            List += "/";
+        List +=  "\n";
     }
     closedir(dir);
     return List;
