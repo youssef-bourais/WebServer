@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/08 19:45:29 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 17:17:21 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -437,7 +437,6 @@ HttpResponse::HttpResponse(const HttpRequest &Request) : HttpMessage(Request.Get
 {
     this->StatusCode = GetHttpStatusCode(Request, *this);
     this->ResponseBody = GetResource(Request, *this);
-    // std::cout << this->ResponseBody<<std::endl;
     this->ResponseHeaders = SetResponseHeaders(*this, Request);
 }
 

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/08 18:16:23 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 17:27:36 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void HttpServer::AccepteConnectionAndRecive()
     {
         throw std::runtime_error(std::string("accept:") + strerror(errno));
     }
-    int r = read(FdConnection, RecivedRequest, MAXLEN - 1);
+    int r = read(FdConnection, this->RecivedRequest, MAXLEN - 1);
     if(r < 0)
     {
         throw std::runtime_error(std::string("reading from file:"));

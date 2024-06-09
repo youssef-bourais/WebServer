@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/06 02:28:10 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 17:35:20 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,6 @@ std::list<KeyValue> InitHttpheaders(std::string Line)
     }
     return headers;
 }
-
 
 
 std::string GetVersion(std::string RecivedLine)

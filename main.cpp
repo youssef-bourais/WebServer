@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/07 22:59:28 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 17:38:30 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,10 @@ void PrintRequestInfo(const HttpRequest &Request)
 {
     std::cout << std::endl<<"++++++++++++++++++| Http  Method |++++++++++++++++"<<std::endl;
     std::cout<< Request.GetHttpMethod()<<std::endl;
+    
     std::cout << std::endl<<"++++++++++++++++++|  Http   URI  |++++++++++++++++"<<std::endl;
     std::cout << Request.GetPath()<<std::endl;
+    
     std::cout << std::endl<<"++++++++++++++++++| Http Version |++++++++++++++++"<<std::endl;
     std::cout << Request.GetHttpVersion()<<std::endl;
     std::cout << std::endl<<"++++++++++++++++++| Http Headers |++++++++++++++++"<<std::endl;
@@ -45,7 +47,8 @@ int main()
             Server.AccepteConnectionAndRecive();
             HttpRequest Request(Server.GetRequest());
             // Request.PrintRequest();
-            // PrintRequestInfo(Request);
+            // std::cout << "========================"<<std::endl;
+            PrintRequestInfo(Request);
             HttpResponse Response(Request);
             /* std::cout <<Response.GetResponseBody()<<std::endl; */
             Server.SendResponse(Response);
