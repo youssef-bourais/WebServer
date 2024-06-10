@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/09 17:41:38 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 18:03:52 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,6 @@ void ParssPath(std::string &path)
 {
     std::cout << path<<std::endl;
     NormalizePath(path);
-    std::cout << path<<std::endl;
-    exit(0);
     if(path.length() == 1)
         return;
     else 

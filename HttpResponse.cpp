@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/09 17:17:21 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/09 19:17:33 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -412,8 +412,8 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     Value = "Ragnar's";
     tmp.push_back(KeyValue(key, Value));
 
-    key = "content-type";
-    Value = "text/html";
+    key = "Conenection: ";
+    Value = "close";
     tmp.push_back(KeyValue(key, Value));
 
     key= "Date: ";

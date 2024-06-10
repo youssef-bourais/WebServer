@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/09 17:38:30 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/10 15:11:48 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,96 @@
 #include "HttpServer.hpp"
 #include "HttpRequest.hpp"
 
+
+#include "../salahserver/errors/Errors.hpp"
+#include "../SalahServer2/parsing/parse.hpp"
+
+
+void PrintConfigFileInfo(const ErrorsChecker &Checker)
+{
+    Parsing ConfigfFile(Checker.GetConfigFilePath());
+
+    ConfigfFile.readBlock();
+
+    while(ConfigfFile.collectData())
+    {
+    }
+
+    std::vector<t_data> Data = ConfigfFile.getData();
+    std::string loc = ConfigfFile.getLocationRule(Data[0], Data[0].locations[0], "proxy_pass");
+    std::cout << loc << std::endl;
+    std::cout << Data[0].locations[0] << std::endl;
+    exit(0);
+
+    std::vector<t_data>::iterator it = Data.begin();
+    while (it != Data.end()) 
+    {
+        std::cout <<"++++++++++Server+++++++++++"<<std::endl;
+
+        // Locations
+        std::vector<std::string>::iterator Locations = it->locations.begin();
+        std::cout <<"======Locations======"<<std::endl;
+        while(Locations != it->locations.end())
+        {
+            std::cout << *Locations<<std::endl;
+            Locations++;
+        }
+ 
+        // Scopes
+        std::vector<std::string>::iterator Scopes =  it->scopes.begin();
+        std::cout <<"======Scopes======"<<std::endl;
+        while(Scopes != it->scopes.end())
+        {
+
+            std::cout << *Scopes<<std::endl;
+            Scopes++;
+        }
+
+        //Ruels (Key Value)
+        std::vector<std::string>::iterator RulesNames = it->rulesNames.begin();
+        std::cout <<std::endl<<"======RulesNames======"<<std::endl;
+        while(RulesNames != it->rulesNames.end())
+        {
+            std::vector<std::string> Value = ConfigfFile.getRule(*it, *RulesNames);
+
+       
+            if (Value.size() == 0)
+                std::cout << *RulesNames<< " : don't have value\n";
+            else 
+            {
+                std::cout << *RulesNames<< " [" << Value.size()<< "] : ";
+                std::vector<std::string>::iterator itValue = Value.begin();
+                while(itValue != Value.end())
+                {
+                    std::cout << *itValue << ", ";
+                    itValue++;
+                }
+                std::cout << std::endl;
+            }
+            RulesNames++;
+        }
+
+        // scope name;
+        std::cout <<"======ScopeName======"<<std::endl;
+        std::cout << it->scopName<<std::endl;
+
+        // scope;
+        std::cout <<"======Scope======"<<std::endl;
+        std::cout << it->scope<<std::endl;
+
+        it++;
+    }
+
+    // std::vector<t_data>::iterator it = servers.begin();
+    // while(it != servers.end())
+    // {
+    //
+    //     it++;
+    // }
+
+    //check for error;
+    ConfigfFile.checkForErrors(Data);
+}
 
 void PrintRequestInfo(const HttpRequest &Request)
 {
@@ -62,58 +152,3 @@ int main()
     return 0;
 }
 
-#include <sys/stat.h>
-#include <string>
-#include <dirent.h>
-#include <iostream>
-
-#define FILE_TYPE 0
-#define DIR_TYPE 1
-#define UNKNOWN_TYPE -1
-
-// int checkFileType(const std::string &path) 
-// {
-//     struct stat s;
-//     if (stat(path.c_str(), &s) == 0) 
-//     {
-//         if (s.st_mode & S_IFDIR)
-//             return DIR_TYPE;
-//         else if (s.st_mode & S_IFREG)
-//             return FILE_TYPE;
-//     }
-//     return UNKNOWN_TYPE;
-// }
-
-// void listDirectoryContents(const std::string &dirPath) 
-// {
-//     DIR *dir;
-//     struct dirent *entry;
-//
-//     if ((dir = opendir(dirPath.c_str())) != NULL) 
-//     {
-//         while ((entry = readdir(dir)) != NULL) 
-//         {
-//             std::string entryName = entry->d_name;
-//             if (entryName == "." || entryName == "..") 
-//                 continue;
-//             std::string fullPath = dirPath + "/" + entryName;
-//             int type = checkFileType(fullPath);
-//
-//             if (type == DIR_TYPE) 
-//                 std::printf("Dir: %s\n", entryName.c_str());
-//             else if (type == FILE_TYPE) 
-//                 std::printf("File: %s\n", entryName.c_str());
-//             else
-//                 std::printf("Unknown: %s\n", entryName.c_str());
-//         }
-//         closedir(dir);
-//     }
-//     else 
-//         perror("Unable to open directory");
-// }
-
-// int main() {
-//     std::string dirPath = "minipage/";
-//     listDirectoryContents(dirPath);
-//     return 0;
-// }
