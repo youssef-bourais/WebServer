@@ -32,15 +32,15 @@ SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp 
 
 CC = c++
 
-CPPFLAGS = -std=c++98 -fsanitize=address
+CPPFLAGS = -std=c++98 -g -fsanitize=address
 
-ERROR_FILES = ../SalahServer2/errors/Errors.cpp
+ERROR_FILES = ./errors/Errors.cpp
 
-ERROR_HEADERS = ../SalahServer2/errors/Errors.hpp
+ERROR_HEADERS = ./errors/Errors.hpp
 
-PARSING_FILES = ../SalahServer2/parsing/Parsing.cpp ../SalahServer2/parsing/FileReader.cpp ../SalahServer2/parsing/parse.cpp ../SalahServer2/parsing/parsingFuncs.cpp ../SalahServer2/parsing/errors.cpp
+PARSING_FILES = ./parsing/Parsing.cpp ./parsing/FileReader.cpp ./parsing/parse.cpp ./parsing/parsingFuncs.cpp ./parsing/errors.cpp
 
-PARSING_HEADER = ../SalahServer2/parsing/Parsing.hpp ../SalahServer2/parsing/FileReader.hpp ../SalahServer2/parsing/parse.hpp ../SalahServer2/parsing/parsingStruct.hpp
+PARSING_HEADER = ./parsing/Parsing.hpp ./parsing/FileReader.hpp ./parsing/parse.hpp ./parsing/parsingStruct.hpp
 
 
 PARSING_OBJS = ${PARSING_FILES:.cpp=.o}
