@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 15:30:45 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/10 16:54:07 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 #include "HttpRequest.hpp"
 
 
-#include "../salahserver/errors/Errors.hpp"
-#include "../SalahServer2/parsing/parse.hpp"
+#include "./errors/Errors.hpp"
+#include "./parsing/parse.hpp"
 
 
 void PrintConfigFileInfo(const ErrorsChecker &Checker)

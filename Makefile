@@ -1,38 +1,13 @@
-# NAME = webserver
-#
-# SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp Tools.cpp
-#
-# CC = c++ -std=c++98 -g -fsanitize=address
-#
-# CFLAGS = -Wall -Werror -Wextra
-#
-# OBJS = ${SRCS:.cpp=.o}
-#
-# %.o : %.cpp	
-# 		$(CC) $(CFLAGS) -c $<
-#
-# all : $(NAME)
-#
-# $(NAME) : $(OBJS) HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp Makefile
-# 		$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
-# clean :
-# 	rm -rf $(OBJS)
-#
-# fclean : clean
-# 	rm -rf $(NAME)
-#
-# re : fclean all
-
-
 NAME = webserver
 
-SRCS = main.cpp HttpServer.cpp HttpMessage.cpp HttpRequest.cpp HttpResponse.cpp Tools.cpp
-
-# SRC = main.cpp ./server/Server.cpp ./server/serv.cpp
+SRCS = main.cpp
 
 CC = c++
 
 CPPFLAGS = -std=c++98 -g -fsanitize=address
+
+
+#Salah
 
 ERROR_FILES = ./errors/Errors.cpp
 
@@ -42,17 +17,37 @@ PARSING_FILES = ./parsing/Parsing.cpp ./parsing/FileReader.cpp ./parsing/parse.c
 
 PARSING_HEADER = ./parsing/Parsing.hpp ./parsing/FileReader.hpp ./parsing/parse.hpp ./parsing/parsingStruct.hpp
 
+#Youssef
 
-PARSING_OBJS = ${PARSING_FILES:.cpp=.o}
+ResponseFiles = ./Response/HttpResponse.cpp 
+
+RequestFiles = ./Request/HttpRequest.cpp ./Request/HttpMessage.cpp
+
+ServerFiles = ./Server/HttpServer.cpp 
+
+Tools = ./Tools/Tools.cpp
+
+Headers = ./Request/HttpMessage.hpp ./Request/HttpRequest.hpp ./Response/HttpResponse.hpp ./Server/HttpServer.hpp ./Tools/Tools.hpp
+
 
 SRC_OBJS = ${SRCS:.cpp=.o}
 
 ERROR_OBJS = ${ERROR_FILES:.cpp=.o}
 
-%.o: %.cpp ${PARSING_HEADER} ${ERROR_HEADERS}  HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp  
-	${CC} ${CPPFLAGS} -c $< -o $@
+PARSING_OBJS = ${PARSING_FILES:.cpp=.o}
 
-${NAME}: ${SRC_OBJS} ${ERROR_OBJS} ${ERROR_HEADERS} ${PARSING_OBJS} ${PARSING_HEADER}  HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp 
+RESP_OBJS = ${ResponseFiles:.cpp=.o}
+
+REQ_OBJS = ${RequestFiles:.cpp=.o}
+
+SERV_OBJS = ${ServerFiles:.cpp=.o}
+
+TOOLS_OBJS = ${Tools:.cpp=.o}
+
+%.o: %.cpp  
+	$(CC) $(CPPFLAGS) -c $<
+
+${NAME}: ${SRC_OBJS} ${ERROR_OBJS} ${PARSING_OBJS} ${REQ_OBJS} ${RESP_OBJS} ${SERV_OBJS} ${TOOLS_OBJS} ${PARSING_HEADER} ${ERROR_HEADERS} ${Headers} Makefile
 	${CC} ${CPPFLAGS} ${SRC_OBJS} ${ERROR_OBJS} ${PARSING_OBJS} -o ${NAME}
 
 all: ${NAME}
