@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 17:04:18 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/10 17:58:04 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include "./errors/Errors.hpp"
 #include "./parsing/parse.hpp"
 
+#define DEFAULT_CONF_FILE "./ConfiFile/server.conf"
 
 void PrintConfigFileInfo(const ErrorsChecker &Checker)
 {

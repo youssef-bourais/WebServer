@@ -1,0 +1,14 @@
+Parsing class.
+
+Have a constructor that takes as a parameter a path to the configuration file.
+There is no default constructor!!!
+
+so to call the Parsing class you should have a path to a configuration file to use it.
+
+Prototypes:
+
+Parsing parsing(std::string filePath);
+-------------------------------------------------------------
+std::string Parsing::readBlock(void);
+
+

@@ -17,6 +17,7 @@ void ErrorsChecker::checkFile (void) {
 	std::cout << GREEN << "Using " << this->conFilePath << " as a configuration file." << DEFAULT_COLOR << std::endl;
 }
 
+
 // fucntion 
 const std::string ErrorsChecker::GetConfigFilePath() const
 {

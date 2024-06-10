@@ -8,7 +8,7 @@
 #include "../parsing/parsingStruct.hpp"
 #include "../parsing/Parsing.hpp"
 
-#define DEFAULT_CONF_FILE	"server.conf"
+
 #define RED					"\x1b[31m"
 #define GREEN				"\x1b[32m"
 #define YELLO				"\x1B[33m"

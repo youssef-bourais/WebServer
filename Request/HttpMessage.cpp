@@ -6,11 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/09 17:35:20 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/10 17:32:19 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpMessage.hpp"
+
 
 HttpMessage::HttpMessage() : RecivedLine(""), HttpVersion(""), HttpHeaders(), Body("")
 {

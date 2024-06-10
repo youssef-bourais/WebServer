@@ -1,5 +1,6 @@
 #include "FileReader.hpp"
 
+
 FileReader::FileReader(void){
 	this->end = false;
 }

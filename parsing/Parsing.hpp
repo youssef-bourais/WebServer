@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "./parsingStruct.hpp"
 
+
 class Parsing : private FileReader {
 	private:
 		std::string	filePath;

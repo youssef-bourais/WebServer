@@ -4,6 +4,7 @@
 #include <vector>
 #include <string> // added this header
 
+
 typedef struct t_holder
 {
 	std::vector<std::string> names;
