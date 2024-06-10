@@ -6,13 +6,13 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 16:54:07 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/10 16:59:49 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "HttpResponse.hpp"
-#include "HttpServer.hpp"
-#include "HttpRequest.hpp"
+#include "./Response/HttpResponse.hpp"
+#include "./Server/HttpServer.hpp"
+#include "./Request/HttpRequest.hpp"
 
 
 #include "./errors/Errors.hpp"

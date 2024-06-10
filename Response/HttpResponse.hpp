@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "HttpRequest.hpp"
+#include "../Request/HttpRequest.hpp"
 #include <cstring>
 #include <list>
 #include <sys/fcntl.h>
@@ -23,7 +23,7 @@
 #include <sys/stat.h>
 
 #include <sstream>
-#include "HttpMessage.hpp"
+#include "../Request/HttpMessage.hpp"
 
 enum HTTPStatusCode 
 {
