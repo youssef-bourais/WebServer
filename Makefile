@@ -49,7 +49,7 @@ SRC_OBJS = ${SRCS:.cpp=.o}
 
 ERROR_OBJS = ${ERROR_FILES:.cpp=.o}
 
-%.o: %.cpp ${PARSING_HEADER} ${ERROR_HEADERS}
+%.o: %.cpp ${PARSING_HEADER} ${ERROR_HEADERS}  HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp  
 	${CC} ${CPPFLAGS} -c $< -o $@
 
 ${NAME}: ${SRC_OBJS} ${ERROR_OBJS} ${ERROR_HEADERS} ${PARSING_OBJS} ${PARSING_HEADER}  HttpMessage.hpp HttpRequest.hpp HttpResponse.hpp HttpServer.hpp Tools.hpp 
