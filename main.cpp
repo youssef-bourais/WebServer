@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 17:58:04 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/13 16:12:27 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
     std::string loc = ConfigfFile.getLocationRule(Data[0], Data[0].locations[0], "proxy_pass");
     std::cout << loc << std::endl;
     std::cout << Data[0].locations[0] << std::endl;
-    exit(0);
 
     std::vector<t_data>::iterator it = Data.begin();
     while (it != Data.end()) 
@@ -127,7 +126,6 @@ void PrintRequestInfo(const HttpRequest &Request)
 
 int main(int ac, char **av) 
 {
-        
     ErrorsChecker checker;
     if (ac == 2)
 		checker.setConfile(av[1]);
@@ -140,8 +138,13 @@ int main(int ac, char **av)
 	}
     try 
     {
-    
 		checker.checkFile();
+
+
+        std::cout << "===============START==============="<<std::endl;
+        
+        PrintConfigFileInfo(checker);
+
         HttpServer Server;
         Server.ForceReuse();
         Server.BindSocketToAddr();
@@ -156,11 +159,6 @@ int main(int ac, char **av)
             HttpResponse Response(Request);
             /* std::cout <<Response.GetResponseBody()<<std::endl; */
             Server.SendResponse(Response);
-        
-            std::cout << "===============START==============="<<std::endl;
-		
-            // parse(ac, av);
-            PrintConfigFileInfo(checker);
         }
     } 
     catch (std::runtime_error& e) 

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 16:58:08 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/11 16:06:52 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,8 +217,9 @@ std::string OpenDir(const std::string &Dir)
     std::string List;
     while((entry = readdir(dir)))
     {
-        // if(entry->d_name == "."|| entry->d_name == "..")
-        //     continue;
+        std::string s = entry->d_name;
+        if(s == "."|| s == "..")
+            continue;
         List += entry->d_name;
         std::string PathOfReource = Dir + entry->d_name;
         if(checkFileType(PathOfReource) == DIR_TYPE) 
@@ -238,12 +239,11 @@ std::string generateListItems(const std::string &fileAndDirNames, const std::str
     while (std::getline(Toread,Name)) 
     {
         std::string CompletPath = Uri + Name;
-        Items += "<li><a href=\"" + CompletPath + "\">" + CompletPath + "</a></li>\n";
+        Items += "<li><a href=\"" + Name + "\">" + Name + "</a></li>\n";
     }
     return Items;
 }
 
-#include <stdlib.h>
 
 std::string InitPage(const std::string &List, const std::string &Uri)
 {

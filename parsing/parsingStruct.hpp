@@ -4,6 +4,7 @@
 #include <vector>
 #include <string> // added this header
 
+#define DEFAULT_CONF_FILE "./ConfiFile/server.conf"
 
 typedef struct t_holder
 {
