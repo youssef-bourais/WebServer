@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/13 16:12:27 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/26 15:58:20 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,17 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
     }
 
     std::vector<t_data> Data = ConfigfFile.getData();
+
     std::string loc = ConfigfFile.getLocationRule(Data[0], Data[0].locations[0], "proxy_pass");
+
     std::cout << loc << std::endl;
     std::cout << Data[0].locations[0] << std::endl;
+    // exit(0);
+
+
+
+
+
 
     std::vector<t_data>::iterator it = Data.begin();
     while (it != Data.end()) 
@@ -139,7 +147,6 @@ int main(int ac, char **av)
     try 
     {
 		checker.checkFile();
-
 
         std::cout << "===============START==============="<<std::endl;
         
