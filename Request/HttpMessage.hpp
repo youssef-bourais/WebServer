@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created1  2024/04/20 13:09:21 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 16:56:42 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/27 19:52:28 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ class HttpMessage
         std::string GetBody() const;
         std::string GetHttpVersion() const;
         std::string GetRecivedLine() const;
+
+        std::string GetHost() const;
         
         void PrintRequest() const;
         void PrintHeaders() const;

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/26 15:58:20 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/27 20:06:00 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,13 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
 
     std::vector<t_data> Data = ConfigfFile.getData();
 
-    std::string loc = ConfigfFile.getLocationRule(Data[0], Data[0].locations[0], "proxy_pass");
-
-    std::cout << loc << std::endl;
-    std::cout << Data[0].locations[0] << std::endl;
-    // exit(0);
+    int i = 0;
+    // while (i < Data.size()) 
+    // {
+    //     std::cout << ConfigfFile.getLocationRule(Data[i], Data[i].locations[i], "proxy_pass")<<std::endl;
+    //     i++;
+    //
+    // }
 
 
 
@@ -73,24 +75,28 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
         while(RulesNames != it->rulesNames.end())
         {
             std::vector<std::string> Value = ConfigfFile.getRule(*it, *RulesNames);
-
-       
-            if (Value.size() == 0)
-                std::cout << *RulesNames<< " : don't have value\n";
-            else 
-            {
-                std::cout << *RulesNames<< " [" << Value.size()<< "] : ";
-                std::vector<std::string>::iterator itValue = Value.begin();
-                while(itValue != Value.end())
-                {
-                    std::cout << *itValue << ", ";
-                    itValue++;
-                }
-                std::cout << std::endl;
-            }
+            if (Value.size() != 0)
+                std::cout << *RulesNames<<std::endl;
+                // std::cout << *RulesNames<< " : don't have value\n";
+            // else 
+            // {
+            //     std::cout << *RulesNames<< " [" << Value.size()<< "] : ";
+            //     std::vector<std::string>::iterator itValue = Value.begin();
+            //     while(itValue != Value.end())
+            //     {
+            //         std::cout << *itValue << ", ";
+            //         itValue++;
+            //     }
+            //     std::cout << std::endl;
+            // }
             RulesNames++;
         }
 
+        // std::string loc = ConfigfFile.getLocationRule(Data[0], Data[0].locations[0], "proxy_pass");
+        // std::cout << loc << std::endl;
+        // std::cout << Data[0].locations[0] << std::endl;
+
+        // exit(0);
         // scope name;
         std::cout <<"======ScopeName======"<<std::endl;
         std::cout << it->scopName<<std::endl;
@@ -110,7 +116,7 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
     // }
 
     //check for error;
-    ConfigfFile.checkForErrors(Data);
+    // ConfigfFile.checkForErrors(Data);
 }
 
 void PrintRequestInfo(const HttpRequest &Request)
@@ -165,6 +171,7 @@ int main(int ac, char **av)
             PrintRequestInfo(Request);
             HttpResponse Response(Request);
             /* std::cout <<Response.GetResponseBody()<<std::endl; */
+            std::cout << Request.GetHost()<<std::endl;
             Server.SendResponse(Response);
         }
     } 

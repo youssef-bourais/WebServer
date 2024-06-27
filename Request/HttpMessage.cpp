@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 17:32:19 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/27 20:06:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,20 @@ HttpMessage &HttpMessage::operator=(const HttpMessage &src)
 HttpMessage::HttpMessage(const HttpMessage& copy) 
 {
     *this = copy;
+}
+
+std::string HttpMessage::GetHost() const
+{
+    std::string str = "NONE";
+
+     std::list<KeyValue>::const_iterator it = this->HttpHeaders.begin();
+    while (it != this->HttpHeaders.end()) 
+    {
+        if(it->HttpHeader == "Host")
+            str = it->HttpValue;
+        it++;
+    }
+    return str;
 }
 
 HttpMessage::~HttpMessage()
