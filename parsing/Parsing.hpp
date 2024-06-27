@@ -15,6 +15,7 @@ class Parsing : private FileReader {
 		std::string	block;
 		size_t serversCout;
 		std::vector<t_data> data;
+		std::vector<t_servers> servers;
 		
 
 		Parsing(void);

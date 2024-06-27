@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/27 20:06:00 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/27 21:41:41 by sait-bah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,10 +153,11 @@ int main(int ac, char **av)
     try 
     {
 		checker.checkFile();
+        Parsing parse(DEFAULT_CONF_FILE);
 
         std::cout << "===============START==============="<<std::endl;
         
-        PrintConfigFileInfo(checker);
+        // PrintConfigFileInfo(checker);
 
         HttpServer Server;
         Server.ForceReuse();

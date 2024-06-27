@@ -7,6 +7,7 @@ Parsing::Parsing(void)
 Parsing::Parsing(std::string filePath) : FileReader(filePath)
 {
 	std::vector<t_data> data;
+	std::vector<t_data>::iterator itr;
 	readBlock();
 	std::cout << "Parsing start" << std::endl;
 	while (collectData())
@@ -14,6 +15,13 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 	}
 	data = getData();
 	checkForErrors(data);
+	itr = data.begin();
+	while (itr != data.end()){
+		std::cout << "Looping" << std::endl;
+		itr++;
+	}
+	std::cout << data.size() << std::endl;
+	exit(0);
 }
 
 Parsing::~Parsing(void)
