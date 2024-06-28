@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/27 20:06:00 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/28 14:19:20 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 #include "./errors/Errors.hpp"
 #include "./parsing/parse.hpp"
+#include <cstdint>
 
 #define DEFAULT_CONF_FILE "./ConfiFile/server.conf"
 
@@ -39,11 +40,6 @@ void PrintConfigFileInfo(const ErrorsChecker &Checker)
     //     i++;
     //
     // }
-
-
-
-
-
 
     std::vector<t_data>::iterator it = Data.begin();
     while (it != Data.end()) 
@@ -171,8 +167,8 @@ int main(int ac, char **av)
             PrintRequestInfo(Request);
             HttpResponse Response(Request);
             /* std::cout <<Response.GetResponseBody()<<std::endl; */
-            std::cout << Request.GetHost()<<std::endl;
             Server.SendResponse(Response);
+            std::cout << Request.GetHeader("User-Agent")<<std::endl;
         }
     } 
     catch (std::runtime_error& e) 

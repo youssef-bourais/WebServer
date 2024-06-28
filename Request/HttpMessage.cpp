@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/27 20:06:06 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/28 14:14:14 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,33 @@ std::string HttpMessage::GetHost() const
      std::list<KeyValue>::const_iterator it = this->HttpHeaders.begin();
     while (it != this->HttpHeaders.end()) 
     {
+        std::cout << it->HttpHeader<<std::endl;
         if(it->HttpHeader == "Host")
+        {
             str = it->HttpValue;
+        }
         it++;
     }
     return str;
 }
+
+std::string HttpMessage::GetHeader(std::string key) const
+{
+    std::string Value;
+    std::list<KeyValue>::const_iterator it = this->HttpHeaders.begin();
+    while(it != this->HttpHeaders.end())
+    {
+        if(key == it->HttpHeader)
+        {
+            Value = it->HttpValue;
+            return Value;
+        }
+        it++;
+    }
+    Value = "";
+    return Value;
+}
+
 
 HttpMessage::~HttpMessage()
 {

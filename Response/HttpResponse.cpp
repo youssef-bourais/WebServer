@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/11 16:06:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/06/28 13:07:57 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,7 +307,7 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
             if(var == DIR_TYPE)
             {
                 Resource = OpenDir(Uri);
-                ListDir(Resource, Uri);
+                ListDir(Resource, Uri);// still need to work recurcivly
             }
             else if(var == FILE_TYPE)
                 Resource = ReadFile(Uri);
