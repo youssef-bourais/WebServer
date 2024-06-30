@@ -73,8 +73,9 @@ class Parsing : private FileReader {
 		void initServerStruct(size_t serversCount);
 		std::vector<t_data> getData(void) const;
 		std::vector<std::string> getRule(t_data server, std::string ruleName) ;
-		std::string getLocationRule(t_data server, std::string location , std::string ruleName);
+		std::vector<std::string> getLocationRule(t_data server, std::string location , std::string ruleName);
 		void checkForErrors(std::vector<t_data> data);
+		std::vector<t_servers> getServers(void) const;
 };
 
 #endif

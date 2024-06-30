@@ -18,7 +18,7 @@ HEADERS = ./Request/HttpMessage.hpp ./Request/HttpRequest.hpp ./Response/HttpRes
 
 # Compiler and flags
 CC = c++
-CPPFLAGS = -std=c++98 -g -fsanitize=address
+CPPFLAGS = -std=c++98 #-g -fsanitize=address
 
 # Object files
 SRC_OBJS = $(SRCS:.cpp=.o)

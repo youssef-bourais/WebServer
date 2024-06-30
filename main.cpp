@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/27 21:41:41 by sait-bah         ###   ########.fr       */
+/*   Updated: 2024/06/30 09:54:29 by sait-bah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,7 +156,10 @@ int main(int ac, char **av)
         Parsing parse(DEFAULT_CONF_FILE);
 
         std::cout << "===============START==============="<<std::endl;
+        std::vector<t_servers> servers = parse.getServers();
         
+        std::cout << servers[0].locations[0].root << std::endl;
+        return (0);
         // PrintConfigFileInfo(checker);
 
         HttpServer Server;
