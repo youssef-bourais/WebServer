@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 16:58:54 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/01 19:44:59 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,12 @@
 #include <sys/socket.h>
 #include <iostream>
  #include <unistd.h>
+#include "../parsing/parsingStruct.hpp"
 
 #include "../Request/HttpMessage.hpp"
 #include "../Response/HttpResponse.hpp"
+
+#include "../errors/Errors.hpp"
 
 #define MAXLEN 8192
 #define SA struct sockaddr_in
@@ -34,9 +37,10 @@ class HttpServer
         int FdConnection;
         SA Address;
         char RecivedRequest[MAXLEN + 1];
-        /* HttpRequest *Request; */
+        std::vector<t_servers> ServerSetting;
+        
     public:
-        HttpServer();
+        HttpServer(const ErrorsChecker &checker);
         ~HttpServer();
         HttpServer &operator=(HttpServer const &s);
         HttpServer(HttpServer const &src);

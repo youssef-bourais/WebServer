@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/01 17:53:41 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/01 19:54:27 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "./parsing/parse.hpp"
 #include <cstdint>
 #include <sys/resource.h>
+#include "Tools/Tools.hpp"
 
 // void PrintConfigFileInfo(const ErrorsChecker &Checker)
 // {
@@ -114,77 +115,7 @@
 //     // ConfigfFile.checkForErrors(Data);
 // }
 
-void PrintRequestInfo(const HttpRequest &Request)
-{
-    std::cout << std::endl<<"++++++++++++++++++| Http  Method |++++++++++++++++"<<std::endl;
-    std::cout<< Request.GetHttpMethod()<<std::endl;
-    
-    std::cout << std::endl<<"++++++++++++++++++|  Http   URI  |++++++++++++++++"<<std::endl;
-    std::cout << Request.GetPath()<<std::endl;
-    
-    std::cout << std::endl<<"++++++++++++++++++| Http Version |++++++++++++++++"<<std::endl;
-    std::cout << Request.GetHttpVersion()<<std::endl;
-    std::cout << std::endl<<"++++++++++++++++++| Http Headers |++++++++++++++++"<<std::endl;
-    Request.PrintHeaders();
-    std::cout << std::endl<<"++++++++++++++++++|  Http Request Body  |++++++++++++++++"<<std::endl;
-    if(Request.GetBody().empty())
-        std::cout << "No Body in Request :("<<std::endl;
-    else
-        std::cout << Request.GetBody()<<std::endl;
-}
 
-void printVect(std::vector<std::string>::iterator begin, std::vector<std::string>::iterator end, std::string Key)
-{
-    std::cout << Key<<": ";
-    while(begin != end)
-    {
-        std::cout << *begin<<", ";
-        begin ++;
-    }
-    std::cout <<std::endl;
-}
-
-void printConfigFile(std::string Path)
-{
-    Parsing parse(Path);
-    std::vector<t_servers> ServerSetting = parse.getServers();
-    
-    int i = 0;
-    while(i < ServerSetting.size())
-    {
-        std::cout << "Server++++++"<<std::endl;
-        printVect(ServerSetting[i].listen.begin(), ServerSetting[i].listen.end(), "listen");
-        std::cout << "Host: " + ServerSetting[i].host<<std::endl;
-        printVect(ServerSetting[i].server_names.begin(), ServerSetting[i].server_names.end(), "server_names");
-        std::cout << "maxBodySize: " + ServerSetting[i].maxBodySize<<std::endl;
-        printVect(ServerSetting[i].allowedMethods.begin(), ServerSetting[i].allowedMethods.end(), "allowedMethods");
-        printVect(ServerSetting[i].index.begin(), ServerSetting[i].index.end(), "index");
-        std::cout << "error_pages: " + ServerSetting[i].errPage<<std::endl;
-        std::cout << "autoIndex: " << ServerSetting[i].autoIndex<<std::endl;
-        std::cout << "root: " + ServerSetting[i].root<<std::endl;
-
-        int j = 0;
-        while(j < ServerSetting[i].locations.size())
-        {
-            std::cout << "Locations++++++"<< std::endl;
-
-            std::cout << "location: " + ServerSetting[i].locations[j].location<<std::endl;
-            std::cout << "root: "<<ServerSetting[i].locations[j].root << std::endl;
-            std::cout << "autoindex: "<<ServerSetting[i].locations[j].autoIndex << std::endl;
-            printVect(ServerSetting[i].locations[j].index.begin(), ServerSetting[i].locations[j].index.end(), "index");
-            std::cout << "maxBodySize: "<<ServerSetting[i].locations[j].maxBodySize << std::endl;
-            std::cout << "errPage: "<<ServerSetting[i].locations[j].errPage << std::endl;
-            printVect(ServerSetting[i].locations[j].allowedMethods.begin(), ServerSetting[i].locations[j].allowedMethods.end(), "allowedMethods");
-            
-            std::cout << "proxy_pass: "<<ServerSetting[i].locations[j].proxyPass<<std::endl;
-            std::cout << "cgiExtentions: "<<ServerSetting[i].locations[j].cgiExtentions<<std::endl;
-            std::cout << "cgiPath: "<<ServerSetting[i].locations[j].cgiPath<<std::endl;
-            std::cout << "uploadPath: "<<ServerSetting[i].locations[j].uploadPath<<std::endl;
-            j++;
-        }
-        i++;
-    }
-}
 
 int main(int ac, char **av) 
 {
@@ -205,7 +136,7 @@ int main(int ac, char **av)
         printConfigFile(checker.GetConfigFilePath());
         std::cout << "===============START==============="<<std::endl;
         
-        HttpServer Server;
+        HttpServer Server(checker);
         Server.ForceReuse();
         Server.BindSocketToAddr();
         Server.StartListining(3);
@@ -213,8 +144,6 @@ int main(int ac, char **av)
         {
             Server.AccepteConnectionAndRecive();
             HttpRequest Request(Server.GetRequest());
-        
-            PrintRequestInfo(Request);
             HttpResponse Response(Request);
             Server.SendResponse(Response);
         }

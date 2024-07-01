@@ -6,26 +6,33 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/10 16:58:57 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/01 20:38:13 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
+#include <cstdlib>
+#include "../Tools/Tools.hpp"
 
 
-HttpServer::HttpServer()
+HttpServer::HttpServer(const ErrorsChecker &checker)
 {
-    this->ServerFd = socket(PF_INET, SOCK_STREAM, 0);
+    // PF_INET: ipv4 or (AF_UNSPEC) for both
+    // SOCK_STREAM: TCP
+    this->ServerFd = socket(AF_INET, SOCK_STREAM, 0);
     if (ServerFd  == -1) 
     { 
         throw std::runtime_error(std::string("Socket: ") + strerror(errno));
     }
     memset(&Address, 0,sizeof(Address));
-    Address.sin_family = PF_INET;
-    Address.sin_addr.s_addr = htonl(INADDR_ANY); // we use htonl to convert the INADDR_ANY constant to network byte order
-    Address.sin_port = htons(PORT);
+    Address.sin_family = AF_INET; // ipv4
+    Address.sin_addr.s_addr = htonl(INADDR_ANY); // any availabe local iP, we use htonl to convert the INADDR_ANY constant to network byte order
+    Address.sin_port = htons(PORT); // 
     memset(RecivedRequest, 0, MAXLEN);
-    /* this->Request = new HttpRequest(); */
+    
+    
+    Parsing parse(checker.GetConfigFilePath());
+    this->ServerSetting = parse.getServers();
 }
 
 HttpServer::~HttpServer()
@@ -59,6 +66,7 @@ void HttpServer::BindSocketToAddr() const
 
 void HttpServer::StartListining(int PendingConection) const
 {
+    //socket turn into passive listening state
     if(listen(ServerFd, PendingConection) < 0)
     {
         throw std::runtime_error(std::string("listen:") + strerror(errno));
