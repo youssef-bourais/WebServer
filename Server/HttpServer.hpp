@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/01 19:44:59 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/02 00:42:27 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,10 @@ class HttpServer
         void BindSocketToAddr() const;
         void StartListining(int PendingConection) const;
         void AccepteConnectionAndRecive();
+        void AccepteMultipleConnectionAndRecive();
+
         void SendResponse(HttpResponse const &Response) const;
+        void SendMultiResponse(HttpResponse const &Response, int fd) const;
 };
 
 

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/01 19:54:27 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/02 00:51:42 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,21 @@
 // }
 
 
+void NonBlockingServer(HttpServer &Server)
+{
+    Server.AccepteMultipleConnectionAndRecive();
+}
+
+void NormalServer(HttpServer &Server)
+{
+    while(1)
+    {
+        Server.AccepteConnectionAndRecive();
+        HttpRequest Request(Server.GetRequest());
+        HttpResponse Response(Request);
+        Server.SendResponse(Response);
+    }
+}
 
 int main(int ac, char **av) 
 {
@@ -140,13 +155,9 @@ int main(int ac, char **av)
         Server.ForceReuse();
         Server.BindSocketToAddr();
         Server.StartListining(3);
-        while(1)
-        {
-            Server.AccepteConnectionAndRecive();
-            HttpRequest Request(Server.GetRequest());
-            HttpResponse Response(Request);
-            Server.SendResponse(Response);
-        }
+
+        // NonBlockingServer(Server);
+        NormalServer(Server);
     } 
     catch (std::runtime_error& e) 
     {
