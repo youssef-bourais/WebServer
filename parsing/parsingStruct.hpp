@@ -21,6 +21,24 @@ typedef struct t_data
 	std::vector<std::string> rulesNames;
 } t_data;
 
+typedef struct t_servers
+{
+	std::vector<std::string> listen;
+	std::vector<std::string> allowedMethods;
+	std::vector<std::string> server_names;
+	std::vector<std::string> index;
+	std::string errPage;
+	std::string root;
+	std::string host;
+	std::string maxBodySize;
+	std::string proxyPass;
+	std::string cgiExtentions;
+	std::string cgiPath;
+	std::string uploadPath;
+	bool autoIndex;
+	std::string location;
+	std::vector<t_servers> locations;
 
+} t_servers;
 
 #endif

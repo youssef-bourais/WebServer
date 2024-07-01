@@ -7,6 +7,12 @@ Parsing::Parsing(void)
 Parsing::Parsing(std::string filePath) : FileReader(filePath)
 {
 	std::vector<t_data> data;
+	std::vector<t_data>::iterator itr;
+	std::vector<std::string> holder;
+	std::string locationRule;
+	std::vector<std::string>::iterator locationsItr;
+	t_servers server;
+	t_servers loc;
 	readBlock();
 	std::cout << "Parsing start" << std::endl;
 	while (collectData())
@@ -14,6 +20,52 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 	}
 	data = getData();
 	checkForErrors(data);
+	itr = data.begin();
+	while (itr != data.end()){
+		std::cout << "Looping" << std::endl;
+		server.listen = getRule(*itr, "listen");
+		server.allowedMethods = getRule(*itr, "allowed_methods");
+		server.server_names = getRule(*itr, "server_names");
+		server.index = getRule(*itr, "index");
+		server.errPage = getRule(*itr, "error_page").size() > 0 ? getRule(*itr, "error_page")[0] : "";
+		server.root = getRule(*itr, "root").size() > 0 ? getRule(*itr, "root")[0] : "";
+		server.host = getRule(*itr, "host").size() > 0 ? getRule(*itr, "host")[0] : "";
+		server.maxBodySize = getRule(*itr, "maxBodySize").size() > 0 ? getRule(*itr, "maxBodySize")[0] : "";
+		server.proxyPass = getRule(*itr, "proxy_pass").size() > 0 ? getRule(*itr, "proxy_pass")[0] : "";
+		server.cgiExtentions = getRule(*itr, "cgi_extentions").size() > 0 ? getRule(*itr, "cgi_extentions")[0] : "";
+		server.cgiPath = getRule(*itr, "cgi_path").size() > 0 ? getRule(*itr, "cgi_path")[0] : "";
+		server.uploadPath = getRule(*itr, "upload_path").size() > 0 ? getRule(*itr, "upload_path")[0] : "";
+		server.autoIndex = (getRule(*itr, "autoIndex").size() > 0 ? getRule(*itr, "autoIndex")[0] : "") == "on" ? true : false;
+		server.location = "";
+		//------------------------------------------------------
+		locationsItr = itr->locations.begin();
+		// while(locationsItr != itr->locations.end()){
+		// 	std::cout << *locationsItr << std::endl;
+		// 	locationsItr++;
+		// }
+		locationsItr = itr->locations.begin();
+			// exit(19);
+		while (locationsItr != itr->locations.end()){
+			loc.listen = getLocationRule(*itr, *locationsItr, "listen");
+			loc.allowedMethods = getLocationRule(*itr, *locationsItr, "allowed_methods");
+			loc.server_names = getLocationRule(*itr, *locationsItr, "server_names");
+			loc.index = getLocationRule(*itr, *locationsItr, "index");
+			loc.errPage = getLocationRule(*itr, *locationsItr, "error_page").size() > 0 ? getLocationRule(*itr, *locationsItr, "error_page")[0] : "";
+			loc.root = getLocationRule(*itr, *locationsItr, "root").size() > 0 ? getLocationRule(*itr, *locationsItr, "root")[0] : "";
+			loc.host = getLocationRule(*itr, *locationsItr, "host").size() > 0 ? getLocationRule(*itr, *locationsItr, "host")[0] : "";
+			loc.maxBodySize = getLocationRule(*itr, *locationsItr, "maxBodySize").size() > 0 ? getLocationRule(*itr, *locationsItr, "maxBodySize")[0] : "";
+			loc.proxyPass = getLocationRule(*itr, *locationsItr, "proxy_pass").size() > 0 ? getLocationRule(*itr, *locationsItr, "proxy_pass")[0] : "";
+			loc.cgiExtentions = getLocationRule(*itr, *locationsItr, "cgi_extentions").size() > 0 ? getLocationRule(*itr, *locationsItr, "cgi_extentions")[0] : "";
+			loc.cgiPath = getLocationRule(*itr, *locationsItr, "cgi_path").size() > 0 ? getLocationRule(*itr, *locationsItr, "cgi_path")[0] : "";
+			loc.uploadPath = getLocationRule(*itr, *locationsItr, "upload_path").size() > 0 ? getLocationRule(*itr, *locationsItr, "upload_path")[0] : "";
+			loc.autoIndex = (getLocationRule(*itr, *locationsItr, "autoIndex").size() > 0 ? getLocationRule(*itr, *locationsItr, "autoIndex")[0] : "") == "on" ? true : false;
+			loc.location = *locationsItr;
+			server.locations.push_back(loc);
+			locationsItr++;
+		}
+		this->servers.push_back(server);
+		itr++;
+	}
 }
 
 Parsing::~Parsing(void)
@@ -423,15 +475,16 @@ std::vector<std::string>::iterator Parsing::getLocationPosition(t_data &server, 
 	return itr;
 }
 
-std::string Parsing::getLocationRule(t_data server, std::string location, std::string ruleName)
+std::vector<std::string> Parsing::getLocationRule(t_data server, std::string location, std::string ruleName)
 {
 	std::vector<std::string>::iterator itr;
 	std::vector<std::string> data;
+	std::vector<std::string> res;
 	std::string holder;
 
 	if (!isLocationExist(server, location))
 	{
-		return "";
+		return res;
 	}
 	itr = getLocationPosition(server, location);
 	*itr = itr->erase(0, itr->find_first_of("{") + 1);
@@ -445,9 +498,15 @@ std::string Parsing::getLocationRule(t_data server, std::string location, std::s
 		{
 			*itr = itr->erase(0, itr->find_first_of(" \t\n"));
 			*itr = ft_trim(*itr);
-			return itr->substr(0, itr->find_first_of(" \t\n"));
+			 res.push_back(itr->substr(0, itr->find_first_of(" \t\n")));
+
+			return res;
 		}
 		*itr++;
 	}
-	return "";
+	return res;
+}
+
+std::vector<t_servers> Parsing::getServers(void) const {
+	return this->servers;
 }
