@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/01 18:01:36 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/02 17:48:21 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -298,7 +298,6 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
     std::string Uri = Request.GetPath();
-    std::printf("this is the answer: %d", Response.GetStatusCode());
     
     if(Method == "GET")
     {

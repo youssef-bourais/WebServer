@@ -11,12 +11,10 @@ def send_request(i):
     except requests.exceptions.RequestException as e:
         print(f"Request {i}: Failed with exception {e}")
 
-# Create 20 threads
-for i in range(1, 21):
+for i in range(0, 1000):
     thread = threading.Thread(target=send_request, args=(i,))
     threads.append(thread)
     thread.start()
 
-# Wait for all threads to complete
 for thread in threads:
     thread.join()

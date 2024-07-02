@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/02 00:47:39 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/02 20:19:52 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
     Address.sin_addr.s_addr = htonl(INADDR_ANY); // any availabe local iP, we use htonl to convert the INADDR_ANY constant to network byte order
     Address.sin_port = htons(PORT); // 
     memset(RecivedRequest, 0, MAXLEN);
-    
     
     Parsing parse(checker.GetConfigFilePath());
     this->ServerSetting = parse.getServers();
@@ -182,7 +181,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
             {
                 throw std::runtime_error(std::string("accept:") + strerror(errno));
             }
-            // // Add new socket to array of sockets
+            // Add new socket to array of sockets
             for (int i = 0; i < max_clients; ++i) 
             {
                 if (client_socket[i] == 0) 
