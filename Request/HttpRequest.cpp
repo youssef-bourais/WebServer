@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/27 19:46:37 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/03 03:06:13 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,15 +62,17 @@ void ParssPath(std::string &path)
         }
         else if(value == DIR_TYPE)
         {
-            if(tmp.back() != '/')
+            if (tmp[tmp.size() - 1] != '/')
                 tmp += '/';
+            /* if(tmp.back() != '/')  */
             path = tmp;
             return ;
         }
         else 
         {
-            if (!tmp.empty() && tmp.back() == '/') 
-                tmp.pop_back();
+            if (!tmp.empty() && tmp[tmp.size() - 1]  == '/') 
+                tmp.erase(tmp.size() - 1);
+                /* tmp.pop_back(); */
             value = checkFileType(tmp);
             if(value == FILE_TYPE)
                 path = tmp;

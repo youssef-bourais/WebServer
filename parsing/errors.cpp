@@ -1,4 +1,12 @@
 #include "Parsing.hpp"
+#include <sstream>
+
+std::string intToString(int num) 
+{
+  std::ostringstream oss;
+  oss << num;
+  return oss.str();
+}
 
 void Parsing::checkUnknownKey(std::vector<t_data> data)
 {
@@ -42,22 +50,22 @@ void Parsing::checkPortNumber(std::vector<std::string> data, size_t counter)
 	if (data.size() == 0)
 	{
 		return;
-		// err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a port to listen to.";
+		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a port to listen to.";
 		// throw std::runtime_error(err);
 	}
 	else if (data.size() > 1)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " can't listen to multiple port.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " can't listen to multiple port.";
 		throw std::runtime_error(err);
 	}
 	else if (data[0].find_first_not_of("0987654321") != std::string::npos)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a valid port number.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid port number.";
 		throw std::runtime_error(err);
 	}
 	else if (data[0].length() > 4)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a valid range port number.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid range port number.";
 		throw std::runtime_error(err);
 	}
 }
@@ -70,6 +78,8 @@ void Parsing::checkDuplicatedPort(std::vector<std::string> ports, std::string po
 		throw std::runtime_error("\x1b[31mError: Duplicated ports between servers.");
 }
 
+#include <cstdlib>  // for atoi
+
 void Parsing::checkHost(std::vector<std::string> data, size_t counter)
 {
 	std::string err;
@@ -78,29 +88,29 @@ void Parsing::checkHost(std::vector<std::string> data, size_t counter)
 
 	if (data.size() == 0)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a host to listen to.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a host to listen to.";
 		throw std::runtime_error(err);
 	}
 	else if (data.size() > 1)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " can't listen to multiple hosts.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " can't listen to multiple hosts.";
 		throw std::runtime_error(err);
 	}
 	else if (data[0].find_first_not_of("0987654321.") != std::string::npos || countAppearance(data[0], '.') != 3)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a valid host ip";
+		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid host ip";
 		throw std::runtime_error(err);
 	}
 	for (int idx = 0; idx < 4; idx++)
 	{
 		if (data[0].substr(0, data[0].find_first_of(".")).length() == 0)
 		{
-			err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a valid host ip (empty digits).";
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid host ip (empty digits).";
 			throw std::runtime_error(err);
 		}
-		else if (stoi(data[0].substr(0, data[0].find_first_of("."))) > 255)
+        else if (atoi(data[0].substr(0, data[0].find_first_of(".")).c_str()) > 255) 
 		{
-			err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a valid host ip (out range digits).";
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid host ip (out range digits).";
 			throw std::runtime_error(err);
 		}
 		data[0] = data[0].erase(0, data[0].find_first_of(".") + 1);
@@ -120,7 +130,7 @@ void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 
 	if (data.size() == 0)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a specified HTTP methods";
+		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a specified HTTP methods";
 		throw std::runtime_error(err);
 	}
 	itr = data.begin();
@@ -128,7 +138,7 @@ void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 	{
 		if (itr->compare("POST") != 0 && itr->compare("GET") != 0 && itr->compare("DELETE") != 0)
 		{
-			err = "\x1b[31mError: Server " + std::to_string(counter) + " Unknowd method " + *itr;
+			err = "\x1b[31mError: Server " + intToString(counter) + " Unknowd method " + *itr;
 			throw std::runtime_error(err);
 		}
 		*itr++;
@@ -146,7 +156,7 @@ void Parsing::checkRepeatedMethods(std::vector<std::string> data, size_t counter
 	{
 		if (std::find(collected.begin(), collected.end(), *itr) != collected.end())
 		{
-			err = "\x1b[31mError: Server " + std::to_string(counter) + " repeated HTTP mthods " + *itr;
+			err = "\x1b[31mError: Server " + intToString(counter) + " repeated HTTP mthods " + *itr;
 			;
 			throw std::runtime_error(err);
 		}
@@ -162,18 +172,18 @@ void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 	if (vec.size() == 0)
 	{
 		return;
-		// err = "\x1b[31mError: Server " + std::to_string(counter) + " don't have a specific bodySize.";
+		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a specific bodySize.";
 		// throw std::runtime_error(err);
 	}
 	else if (vec.size() != 1)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " should only have one maxBodySize number.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " should only have one maxBodySize number.";
 		throw std::runtime_error(err);
 	}
 	itr = vec.begin();
 	if (itr->find_first_not_of("0987654321") != std::string::npos)
 	{
-		err = "\x1b[31mError: Server " + std::to_string(counter) + " have an invalid body size value.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " have an invalid body size value.";
 		throw std::runtime_error(err);
 	}
 }

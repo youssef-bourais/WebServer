@@ -10,7 +10,7 @@ ErrorsChecker::ErrorsChecker(std::string path) : conFilePath(path){
 void ErrorsChecker::checkFile (void) {
 	if (!checkExtention(this->conFilePath))
 		throw std::runtime_error("\x1b[31mError: The provided file extention is not accepted\nfile.conf is the only extention accepted.");
-	this->file.open(this->conFilePath);
+    this->file.open(this->conFilePath.c_str());
 	if (!this->file.is_open()) {
 		throw std::runtime_error("\x1b[31mError: Couldn't open or find the provided configuration file\nCheck if path exists or if the file have the reading permission.");
 	}

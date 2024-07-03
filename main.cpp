@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/02 22:05:53 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/03 03:20:37 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 
 #include "./errors/Errors.hpp"
 #include "./parsing/parse.hpp"
-#include <cstdint>
 #include <sys/resource.h>
 #include "Tools/Tools.hpp"
 
@@ -159,12 +158,12 @@ int main(int ac, char **av)
         Server.BindSocketToAddr();
         Server.StartListining(3);
 
-        // NonBlockingServer(Server);
+        /* NonBlockingServer(Server); */
         NormalServer(Server);
-    } 
-    catch (std::runtime_error& e) 
-    {
-        std::cerr << "Error: " << e.what() << std::endl;
+} 
+catch (std::runtime_error& e) 
+{
+    std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
     return 0;

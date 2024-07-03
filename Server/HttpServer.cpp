@@ -6,13 +6,13 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/02 20:19:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/03 03:20:56 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
 #include <cstdlib>
-#include <sys/_types/_u_int32_t.h>
+#include <stdint.h> // Include for uint32_t definition
 #include <sys/socket.h>
 #include "../Tools/Tools.hpp"
 
@@ -80,7 +80,7 @@ void HttpServer::StartListining(int PendingConection) const
 
 void printClientInfo(const struct sockaddr* client_addr, socklen_t client_addr_size) 
 {
-    if (client_addr == nullptr || client_addr_size == 0) 
+    if (client_addr == NULL || client_addr_size == 0) 
     {
         std::cerr << "Invalid client address information." << std::endl;
         return;
@@ -93,12 +93,11 @@ void printClientInfo(const struct sockaddr* client_addr, socklen_t client_addr_s
 
         // Convert IP address to string
         char ip_str[INET_ADDRSTRLEN];
-        if (inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, sizeof(ip_str)) == nullptr) 
+        if (inet_ntop(AF_INET, &(addr_in->sin_addr), ip_str, sizeof(ip_str)) == NULL) 
         {
             perror("inet_ntop");
             return;
         }
-
         // Print IP address and port
         std::cout << "Client IP: " << ip_str << std::endl;
         std::cout << "Client Port: " << ntohs(addr_in->sin_port) << std::endl;

@@ -7,7 +7,7 @@ FileReader::FileReader(void){
 
 FileReader::FileReader(std::string fileName) : fileName(fileName) {
 	this->end = false;
-	this->file.open(fileName);
+	this->file.open(fileName.c_str());
 	if (!this->file.is_open()) {
 		std::cerr << "Error: Couldn't open the requested file, check if file exist"
 		<< " and have the permission to open it" << std::endl;
@@ -41,7 +41,7 @@ void FileReader::reset(void){
 	this->file.close();
 	this->line = "";
 	this->end = false;
-	this->file.open(this->fileName);
+	this->file.open(this->fileName.c_str());
 	if (!this->file.is_open())
 		throw std::runtime_error("\x1b[31mError: Couldn't open the configuration file.\nCheck if the file exists and have the read permission.");
 }
