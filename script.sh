@@ -3,9 +3,10 @@
 url="http://localhost/"
 
 # Function to send request and capture response or error
-send_request() {
-  response=$(curl -s -w "%{http_code}" "$url")
-  status_code="${response: -3}"  # Extract the last 3 characters (status code)
+send_request() 
+{
+    response=$(curl -s -w "%{http_code}" -d "number=$i" "$url")
+    status_code="${response: -3}"  # Extract the last 3 characters (status code)
 
   if [[ -z "$response" ]]; then
     echo "Request $1: Error - No response received"

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/03 03:06:13 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/04 01:50:09 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,13 +47,14 @@ void NormalizePath(std::string &Path)
 
 void ParssPath(std::string &path)
 {
-    std::cout << path<<std::endl;
     NormalizePath(path);
     if(path.length() == 1)
         return;
     else 
     {
-        std::string tmp = path.substr(1); // remove the first slash /
+        std::string tmp ;
+        if (!path.empty())
+            tmp = path.substr(1); // remove the first slash /
         int value = checkFileType(tmp);
         if(value == FILE_TYPE)
         {
@@ -64,7 +65,6 @@ void ParssPath(std::string &path)
         {
             if (tmp[tmp.size() - 1] != '/')
                 tmp += '/';
-            /* if(tmp.back() != '/')  */
             path = tmp;
             return ;
         }
@@ -72,7 +72,6 @@ void ParssPath(std::string &path)
         {
             if (!tmp.empty() && tmp[tmp.size() - 1]  == '/') 
                 tmp.erase(tmp.size() - 1);
-                /* tmp.pop_back(); */
             value = checkFileType(tmp);
             if(value == FILE_TYPE)
                 path = tmp;
