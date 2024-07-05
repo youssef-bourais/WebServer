@@ -1,3 +1,4 @@
+
 #!/bin/zsh
 
 url="http://localhost/"
@@ -5,21 +6,25 @@ url="http://localhost/"
 # Function to send request and capture response or error
 send_request() 
 {
-    response=$(curl -s -w "%{http_code}" -d "number=$i" "$url")
-    status_code="${response: -3}"  # Extract the last 3 characters (status code)
+    # Send GET request
+    response=$(curl -s -D - "$url")
+    
+    # Extract the first line of the response
+    first_line=$(echo "$response" | head -n 1)
 
-  if [[ -z "$response" ]]; then
-    echo "Request $1: Error - No response received"
-  elif [[ ! $status_code =~ ^[0-9]{3}$ ]]; then
-    echo "Request $1: Error - Unexpected response: $response"
-  else
-    echo "Request $1: Status Code: $status_code"
-  fi
+    # Debug output
+    echo "Debug: First Line: $first_line" >&2
+
+    if [[ -z "$first_line" ]]; then
+        echo "Request $1: Error - No response received"
+    else
+        echo "Request $1: $first_line"
+    fi
 }
 
-# Loop to send 20 requests
+# Loop to send requests
 for i in {1..10000}; do
-  send_request $i &
+    send_request $i &
 done
 
 # Wait for all background processes to finish

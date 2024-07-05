@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/02 17:48:21 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/05 23:26:08 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,9 +311,17 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
             }
             else if(var == FILE_TYPE)
                 Resource = ReadFile(Uri);
+            Response.SetHTTPStatusCode(HTTP_OK);
+        }
+        else if(Uri == "/")
+        {
+            Response.SetHTTPStatusCode(HTTP_OK);
         }
         else 
+        {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        }
+
     }
     else if(Method == "POST")
     {

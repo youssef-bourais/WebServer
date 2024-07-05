@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 15:27:28 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/04 01:50:09 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/05 23:26:00 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,8 @@ void NormalizePath(std::string &Path)
 }
 
 void ParssPath(std::string &path)
-{
-    NormalizePath(path);
+{    
+       NormalizePath(path);
     if(path.length() == 1)
         return;
     else 
@@ -77,12 +77,14 @@ void ParssPath(std::string &path)
                 path = tmp;
             else 
                 path = "";
+
         }
     }
 }
 
 std::string getPath(std::string RecivedLine)
 {
+    std::cout << RecivedLine<<std::endl;
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
