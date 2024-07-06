@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/04 22:11:07 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/06 01:46:42 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ class HttpServer
         void StartListining(int PendingConection) const;
         void AccepteConnectionAndRecive();
 
-        void AccepteConnection();
-        void ReciveData();
+        int AccepteConnection();
+        void ReciveData(int fd);
 
         void AccepteMultipleConnectionAndRecive();
 
