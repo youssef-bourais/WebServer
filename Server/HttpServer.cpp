@@ -6,16 +6,19 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/06 02:49:19 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/07 02:53:29 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
+#include <algorithm>
 #include <cstdlib>
+#include <map>
 #include <stdint.h> // Include for uint32_t definition
 #include <sys/_select.h>
 #include <sys/_types/_fd_def.h>
 #include <sys/socket.h>
+#include <vector>
 #include "../Tools/Tools.hpp"
 
 
@@ -26,6 +29,7 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
     // PF_INET: ipv4 or (AF_UNSPEC) for both
     // SOCK_STREAM: TCP
     this->ServerFd = socket(AF_INET, SOCK_STREAM, 0);
+    this->FdConnection = 0;
     if (ServerFd  == -1) 
     { 
         throw std::runtime_error(std::string("Socket: ") + strerror(errno));
@@ -126,6 +130,19 @@ void printClientInfo(const struct sockaddr* client_addr, socklen_t client_addr_s
     }
 }
 
+void setNonBlocking(int fd) 
+{
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) 
+    {
+        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) 
+    {
+        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
+    }
+}
+
 void HttpServer::AccepteConnectionAndRecive()
 {
     std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
@@ -143,224 +160,6 @@ void HttpServer::AccepteConnectionAndRecive()
         throw std::runtime_error(std::string("reaciving from file:"));
     }
 }
-
-// void HttpServer::AccepteMultipleConnectionAndRecive()
-// {
-//     int max_clients = 30;
-//     int client_socket[max_clients];
-//
-//     //set of socket descriptors  
-//
-//     int i = 0;
-//     for (i = 0; i < max_clients; i++)   
-//     {   
-//         client_socket[i] = 0;   
-//     } 
-//
-//     while(true)
-//     {
-//         fd_set readfds;    
-//
-//         //clear the socket set  
-//         FD_ZERO(&readfds);   
-//
-//         //add master socket to set  
-//         FD_SET(ServerFd, &readfds);   
-//         int max_fd = ServerFd;   
-//
-//         int j = 0;
-//         while (j < max_clients) 
-//         {
-//             if (client_socket[j] > 0) 
-//                 FD_SET(client_socket[j], &readfds);
-//             if (client_socket[j] > max_fd)
-//                 max_fd = client_socket[j];
-//             j++;
-//         }
-//
-//         // Wait for any activity on the sockets
-//         int activity = select(max_fd + 1, &readfds, NULL, NULL, NULL);
-//         if ((activity < 0) && (errno != EINTR)) // forbiding
-//         {
-//             throw std::runtime_error(std::string("select:") + strerror(errno));
-//         }
-//
-//         // Handle incoming connection
-//         if (FD_ISSET(ServerFd, &readfds)) 
-//         {
-//             std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
-//             this->AccepteConnectionAndRecive();
-//
-//             // Add new socket to array of sockets
-//             for (int i = 0; i < max_clients; ++i) 
-//             {
-//                 if (client_socket[i] == 0) 
-//                 {
-//                     client_socket[i] = FdConnection;
-//                     break;
-//                 }
-//                 // Handle client sockets
-//                 for (int i = 0; i < max_clients; ++i) 
-//                 {
-//                     int new_sockets = client_socket[i];
-//
-//                     if (FD_ISSET(new_sockets, &readfds)) 
-//                     {
-//                         // Handle read/write operations for client_socket
-//                         // int valread = read(new_sockets, this->RecivedRequest, MAXLEN - 1);
-//                         int valread = recv(new_sockets, this->RecivedRequest, MAXLEN - 1, 0);
-//                         if (valread <= 0) 
-//                         {
-//                             // Client disconnected or error
-//                             if (valread == 0)
-//                                 std::cout << "Client disconnected, fd: " << client_socket << std::endl;
-//                             else
-//                                 perror("read error");
-//                             close(new_sockets);
-//                             client_socket[i] = 0;
-//                         } 
-//                         else 
-//                         {
-//                             std::cout << this->GetRequest()<<std::endl;
-//                             exit(0);
-//                             HttpRequest Request(this->GetRequest());
-//                             HttpResponse Response(Request);
-//                             this->SendMultiResponse(Response, new_sockets);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
-
-void setNonBlocking(int fd) 
-{
-    int flags = fcntl(fd, F_GETFL, 0);
-    if (flags == -1) 
-    {
-        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
-    }
-    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) 
-    {
-        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
-    }
-}
-
-
-int HttpServer::AccepteConnection()
-{   
-    std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
-    struct sockaddr_in client_addr;
-    socklen_t client_addrlen = sizeof(client_addr);
-    int neww = accept(ServerFd, (struct sockaddr *)&client_addr, &client_addrlen);
-    // this->FdConnection = accept(ServerFd, (struct sockaddr *)&client_addr, &client_addrlen);
-    // printClientInfo((struct sockaddr *)&client_addr, client_addrlen);
-    if(neww < 0)
-    {
-        throw std::runtime_error(std::string("accept:") + strerror(errno));
-    }
-    return neww;
-}
-
-
-void HttpServer::ReciveData(int fd)
-{    
-    int r = recv(fd, this->RecivedRequest, MAXLEN - 1, 0);
-    if(r < 0)
-    {
-        throw std::runtime_error(std::string("recv: "));
-    }
-}
-
-void HttpServer::SendMultiResponse(const HttpResponse &Response, int fd) const
-{
-    std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
-    std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
-    std::list<KeyValue>::const_iterator itend = Response.GetHeadersEnd();
-    while(it != itend)
-    {
-        FinalResponse += it->HttpHeader + it->HttpValue + '\n';
-        it++;
-    }
-    FinalResponse += "\r\n";
-    FinalResponse += Response.GetResponseBody();
-    
-    int response_length = strlen(FinalResponse.c_str());
-    if(send(fd, FinalResponse.c_str(), response_length, 0) != response_length) 
-    {
-        throw std::runtime_error(std::string("send to FdConnection:"));
-    }
-    close(fd);
-}
-
-void HttpServer::AccepteMultipleConnectionAndRecive()
-{
-    int activity;
-    int max_fd;
-    fd_set current_set, ready_set;
-
-    //init the set of fd
-    FD_ZERO(&current_set);
-    FD_SET(this->ServerFd, &current_set);
-    max_fd = this->ServerFd;
-
-    struct timeval      timeout;
-    timeout.tv_sec  = 3 * 60;
-    timeout.tv_usec = 0;
-
-    while(true)
-    {
-        ready_set = current_set;
-
-        max_fd = ServerFd;   
-        activity = select(max_fd + 1, &ready_set, NULL, NULL, NULL);
-        if(activity < 0)
-            throw std::runtime_error(std::string("selcet:") + strerror(errno));
-        for(int i = ServerFd;i <= max_fd;i++)
-        {
-            if(FD_ISSET(i, &ready_set))
-            {
-
-                std::cout << "activity in  " << i << std::endl;
-                //new connection
-                if(i == this->ServerFd)
-                {
-                    std::cout << "new connection"<<std::endl;
-                    int new_fd = this->AccepteConnection();
-                    setNonBlocking(new_fd);
-                    if (new_fd >= 0) 
-                    {
-                        FD_SET(new_fd, &current_set);
-                        if (new_fd > max_fd) 
-                            max_fd = new_fd;
-                    }
-
-                }
-                else 
-                {
-
-                    std::cout << "socket ready"<< i<< "for reading"<<std::endl;
-                    this->ReciveData(i);
-                   
-                    HttpRequest Request(this->GetRequest());
-                    
-                    std::cout << "Sending response..." << std::endl;
-                    HttpResponse Response(Request);
-                    this->SendMultiResponse(Response, i);
-                    std::cout << "Response sent" << std::endl;
-                    close(i);
-                    FD_CLR(i, &current_set);
-                }
-            }
-            else 
-            {
-                std::cout << "not ready"<<std::endl;
-            }
-        }
-    }
-}
-
 
 // void HttpServer::AccepteMultipleConnectionAndRecive()
 // {
@@ -489,6 +288,182 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 
 
 
+
+
+int HttpServer::AccepteConnection()
+{   
+    static int a;
+    std::cout <<"waiting for conection on Port: " << PORT << " :"<< a++<<std::endl;
+    struct sockaddr_in client_addr;
+    socklen_t client_addrlen = sizeof(client_addr);
+    int neww = accept(ServerFd, (struct sockaddr *)&client_addr, &client_addrlen);
+    // this->FdConnection = accept(ServerFd, (struct sockaddr *)&client_addr, &client_addrlen);
+    // printClientInfo((struct sockaddr *)&client_addr, client_addrlen);
+    if(neww < 0)
+    {
+        throw std::runtime_error(std::string("accept:") + strerror(errno));
+    }
+    return neww;
+}
+
+
+const std::string HttpServer::ReciveData(int fd)
+{    
+    int r = recv(fd, this->RecivedRequest, MAXLEN - 1, 0);
+    if(r < 0)
+    {
+        throw std::runtime_error(std::string("recv: "));
+    }
+    return this->RecivedRequest;
+}
+
+void HttpServer::SendMultiResponse(const HttpResponse &Response, int fd) const
+{
+    std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
+    std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
+    std::list<KeyValue>::const_iterator itend = Response.GetHeadersEnd();
+    while(it != itend)
+    {
+        FinalResponse += it->HttpHeader + it->HttpValue + '\n';
+        it++;
+    }
+    FinalResponse += "\r\n";
+    FinalResponse += Response.GetResponseBody();
+    
+    int response_length = strlen(FinalResponse.c_str());
+    if(send(fd, FinalResponse.c_str(), response_length, 0) != response_length) 
+    {
+        throw std::runtime_error(std::string("send to FdConnection:"));
+    }
+}
+
+void HttpServer::AccepteMultipleConnectionAndRecive()
+{
+    int activity;
+    int max_fd;
+    fd_set current_set, ready_set;
+
+    fd_set ready_readfds, ready_writefds, current_readfds, current_writefds;
+    // FD_ZERO(&current_readfds);
+
+    //init the set of fd
+    FD_ZERO(&current_readfds);
+    FD_ZERO(&current_writefds);
+    FD_SET(this->ServerFd, &current_readfds);
+    max_fd = this->ServerFd;
+
+    struct timeval      timeout;
+
+    timeout.tv_sec  = 1;
+    timeout.tv_usec = 0;
+
+    std::vector<int > Fds;
+    std::map<int , std::string> buffers;
+    while(true)
+    {
+        ready_readfds = current_readfds;
+        ready_writefds = current_writefds;
+
+        activity = select(max_fd + 1, &ready_set, &ready_writefds, NULL, NULL);
+        if(activity < 0)
+            throw std::runtime_error(std::string("selcet:") + strerror(errno));
+        if(activity == 0)
+            continue;
+
+        for(int i = this->ServerFd;i <= max_fd;i++)
+        {
+            if(FD_ISSET(i, &ready_readfds))
+            {
+                // new connection
+                if(i == this->ServerFd)
+                {
+                    int new_fd = this->AccepteConnection();
+                    setNonBlocking(new_fd);
+                    FD_SET(new_fd, &current_readfds);
+                    FD_SET(new_fd, &current_writefds);
+                    if (new_fd > max_fd) 
+                        max_fd = new_fd;
+                }
+                // reading operation
+                else 
+                {
+                    buffers[i] = this->ReciveData(i);
+                    Fds.push_back(i);
+                    FD_SET(i, &current_writefds);
+                }
+            }
+        }
+        for (int j = 0;j < Fds.size();j++) 
+        {
+            int fd = Fds[j];
+            if (FD_ISSET(fd, &ready_writefds))
+            {
+                std::cout << buffers[fd]<<std::endl;
+                HttpRequest Request(buffers[fd]);
+                HttpResponse Response(Request);
+
+                this->SendMultiResponse(Response, fd);
+                close(fd);
+                FD_CLR(fd, &current_readfds);
+                FD_CLR(fd, &current_writefds);
+                Fds.erase(Fds.begin() + j); // Update max_fd
+                max_fd--;
+            }
+        }
+    }
+}
+
+// void HttpServer::AccepteMultipleConnectionAndRecive()
+// {
+//     int activity;
+//     int max_fd;
+//     fd_set current_set, ready_set;
+//
+//     FD_ZERO(&current_set);
+//     FD_SET(this->ServerFd, &current_set);
+//     max_fd = this->ServerFd;
+//
+//     struct timeval      timeout;
+//     timeout.tv_sec  = 3 * 60;
+//     timeout.tv_usec = 0;
+//
+//     while(true)
+//     {
+//         ready_set = current_set;
+//
+//         activity = select(max_fd + 1, &ready_set, NULL, NULL, NULL);
+//         if(activity < 0)
+//             throw std::runtime_error(std::string("selcet:") + strerror(errno));
+//         for(int i = ServerFd;i <= max_fd;i++)
+//         {
+//             if(FD_ISSET(i, &ready_set))
+//             {
+//
+//                 //new connection
+//                 if(i == this->ServerFd)
+//                 {
+//                     int new_fd = this->AccepteConnection();
+//                     setNonBlocking(new_fd);
+//                     if (new_fd >= 0) 
+//                     {
+//                         FD_SET(new_fd, &current_set);
+//                         if (new_fd > max_fd) 
+//                             max_fd = new_fd;
+//                     }
+//                 }
+//                 else 
+//                 {
+//                     this->ReciveData(i);
+//                     HttpRequest Request(this->GetRequest());
+//                     HttpResponse Response(Request);
+//                     this->SendMultiResponse(Response, i);
+//                     close(i);
+//                     FD_CLR(i, &current_set);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 void HttpServer::SendResponse(const HttpResponse &Response) const
 {

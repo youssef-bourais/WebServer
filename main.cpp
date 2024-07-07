@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/05 22:47:49 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/07 02:20:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,7 @@
 
 void NonBlockingServer(HttpServer &Server)
 {
+    std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
     Server.AccepteMultipleConnectionAndRecive();
 }
 
@@ -157,7 +158,7 @@ int main(int ac, char **av)
         Server.ForceReuse();
         Server.SetFdToNonBlocking();
         Server.BindSocketToAddr();
-        Server.StartListining(32);
+        Server.StartListining(1024);
 
         NonBlockingServer(Server);
         // NormalServer(Server);

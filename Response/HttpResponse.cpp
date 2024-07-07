@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/05 23:26:08 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/06 20:37:00 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,7 +383,6 @@ HTTPStatusCode GetHttpStatusCode(const HttpRequest &Request, const HttpResponse 
 /* } */
 
 #include <ctime>  
-
 std::string GetDate() 
 {
     time_t currentTime = std::time(NULL); // Correctly use time_t without std::
