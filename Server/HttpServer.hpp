@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/07 02:07:32 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/08 00:47:10 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,11 +55,13 @@ class HttpServer
 
         int AccepteConnection();
         const std::string ReciveData(int fd);
+        const std::string GenarateResponse(const HttpResponse &Response, int fd) const;
+        int SendChunckedResponse(int fd, std::string &message);
 
         void AccepteMultipleConnectionAndRecive();
 
         void SendResponse(HttpResponse const &Response) const;
-        void SendMultiResponse(HttpResponse const &Response, int fd) const;
+        ssize_t SendMultiResponse(HttpResponse const &Response, int fd, int *helper) const;
 };
 
 

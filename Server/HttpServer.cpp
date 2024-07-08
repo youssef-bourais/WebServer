@@ -6,13 +6,15 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/07 02:53:29 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/08 02:51:48 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cstdlib>
+#include <limits>
 #include <map>
 #include <stdint.h> // Include for uint32_t definition
 #include <sys/_select.h>
@@ -317,7 +319,7 @@ const std::string HttpServer::ReciveData(int fd)
     return this->RecivedRequest;
 }
 
-void HttpServer::SendMultiResponse(const HttpResponse &Response, int fd) const
+const std::string HttpServer::GenarateResponse(const HttpResponse &Response, int fd) const
 {
     std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
     std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
@@ -331,10 +333,45 @@ void HttpServer::SendMultiResponse(const HttpResponse &Response, int fd) const
     FinalResponse += Response.GetResponseBody();
     
     int response_length = strlen(FinalResponse.c_str());
-    if(send(fd, FinalResponse.c_str(), response_length, 0) != response_length) 
+    return FinalResponse;
+}
+
+ssize_t HttpServer::SendMultiResponse(const HttpResponse &Response, int fd, int *helper) const
+{
+    std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
+    std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
+    std::list<KeyValue>::const_iterator itend = Response.GetHeadersEnd();
+    while(it != itend)
     {
-        throw std::runtime_error(std::string("send to FdConnection:"));
+        FinalResponse += it->HttpHeader + it->HttpValue + '\n';
+        it++;
     }
+    FinalResponse += "\r\n";
+    FinalResponse += Response.GetResponseBody();
+    
+    int response_length = strlen(FinalResponse.c_str());
+    *helper = response_length;
+    ssize_t sendingbyt;
+    sendingbyt = send(fd, FinalResponse.c_str(), response_length, 0) ;
+    if(sendingbyt != response_length) 
+    {
+        if (errno != EWOULDBLOCK && errno != EAGAIN)
+        {
+            std::cout << "byte_sent: "<< sendingbyt << "response_length: "<< response_length<<std::endl;
+            throw std::runtime_error(std::string("send to FdConnection:"));
+        }
+        else 
+        {
+            std::cout << "send blocked"<<std::endl;
+        }
+    }
+    return sendingbyt;
+}
+
+void logMessage(const std::string &message) {
+    std::ofstream log_file("server.log", std::ios_base::out | std::ios_base::app);
+    std::time_t now = std::time(0);
+    log_file << std::ctime(&now) << ": " << message << std::endl;
 }
 
 void HttpServer::AccepteMultipleConnectionAndRecive()
@@ -344,7 +381,6 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
     fd_set current_set, ready_set;
 
     fd_set ready_readfds, ready_writefds, current_readfds, current_writefds;
-    // FD_ZERO(&current_readfds);
 
     //init the set of fd
     FD_ZERO(&current_readfds);
@@ -359,17 +395,18 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 
     std::vector<int > Fds;
     std::map<int , std::string> buffers;
+    std::map<int, std::string> ResponseMsg;
     while(true)
     {
-        ready_readfds = current_readfds;
-        ready_writefds = current_writefds;
+        ready_readfds = current_readfds; ready_writefds = current_writefds;
 
-        activity = select(max_fd + 1, &ready_set, &ready_writefds, NULL, NULL);
+        activity = select(max_fd + 1, &ready_readfds, &ready_writefds, NULL, NULL);
         if(activity < 0)
             throw std::runtime_error(std::string("selcet:") + strerror(errno));
         if(activity == 0)
             continue;
 
+        //loping to accepte new fd and read from them
         for(int i = this->ServerFd;i <= max_fd;i++)
         {
             if(FD_ISSET(i, &ready_readfds))
@@ -378,6 +415,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 if(i == this->ServerFd)
                 {
                     int new_fd = this->AccepteConnection();
+                    logMessage("Accepted connection, fd: " + std::to_string(new_fd));
                     setNonBlocking(new_fd);
                     FD_SET(new_fd, &current_readfds);
                     FD_SET(new_fd, &current_writefds);
@@ -387,30 +425,64 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 // reading operation
                 else 
                 {
+                    //reding data from the socket of the client
                     buffers[i] = this->ReciveData(i);
+                    logMessage("Received data from fd: " + std::to_string(i));
                     Fds.push_back(i);
                     FD_SET(i, &current_writefds);
                 }
             }
         }
+        // loping and checking if some fd in the writing set is ready to write to its fd (send respose to socket client)
         for (int j = 0;j < Fds.size();j++) 
         {
             int fd = Fds[j];
-            if (FD_ISSET(fd, &ready_writefds))
+            if (FD_ISSET(fd, &ready_writefds)) // indicates that the socket's send buffer has space available to accept more data
             {
-                std::cout << buffers[fd]<<std::endl;
-                HttpRequest Request(buffers[fd]);
-                HttpResponse Response(Request);
-
-                this->SendMultiResponse(Response, fd);
-                close(fd);
-                FD_CLR(fd, &current_readfds);
-                FD_CLR(fd, &current_writefds);
-                Fds.erase(Fds.begin() + j); // Update max_fd
-                max_fd--;
+                if(ResponseMsg.find(fd) == ResponseMsg.end())
+                {
+                    HttpRequest Request(buffers[fd]);
+                    HttpResponse Response(Request);
+                    ResponseMsg[fd] = this->GenarateResponse(Response, fd);
+                }
+                
+                std::string &message = ResponseMsg[fd];
+                int bytes_sent = this->SendChunckedResponse(fd, message);
+                std::cout << bytes_sent<<std::endl;
+                if (bytes_sent < 0)
+                {
+                    close(fd);
+                    FD_CLR(fd, &current_readfds);
+                    FD_CLR(fd, &current_writefds);
+                    Fds.erase(Fds.begin() + j);
+                    j--;
+                    ResponseMsg.erase(fd);
+                }
+                else
+                {
+                    logMessage("Sent " + std::to_string(bytes_sent) + " bytes to fd: " + std::to_string(fd));
+                    message.erase(0, bytes_sent); // Remove sent bytes from buffer
+                    if (message.empty())
+                    {
+                        // Entire response has been sent
+                        close(fd);
+                        FD_CLR(fd, &current_readfds);
+                        FD_CLR(fd, &current_writefds);
+                        Fds.erase(Fds.begin() + j);
+                        j--;
+                        ResponseMsg.erase(fd);
+                        logMessage("Connection closed, fd: " + std::to_string(fd));
+                    }
+                }
             }
         }
     }
+}
+
+int HttpServer::SendChunckedResponse(int fd, std::string &message)
+{
+    int bytes_sent = send(fd, message.c_str(), message.size(), 0);
+    return bytes_sent;
 }
 
 // void HttpServer::AccepteMultipleConnectionAndRecive()

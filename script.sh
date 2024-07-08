@@ -23,7 +23,7 @@ send_request()
 }
 
 # Loop to send requests
-for i in {1..1000}; do
+for i in {1..100}; do
     send_request $i &
 done
 
