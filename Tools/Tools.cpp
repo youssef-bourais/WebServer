@@ -75,6 +75,7 @@ void printConfigFile(std::string Path)
     }
 }
 
+
 void PrintRequestInfo(const HttpRequest &Request)
 {
     std::cout << std::endl<<"++++++++++++++++++| Http  Method |++++++++++++++++"<<std::endl;
@@ -94,13 +95,34 @@ void PrintRequestInfo(const HttpRequest &Request)
         std::cout << Request.GetBody()<<std::endl;
 }
 
-#include <ctime> // Correct include for time functions
-#include <sstream> // For stringstream to replace std::to_string
+int StringToInt(const std::string &s)
+{
+    int nbr;
+    std::istringstream num(s);
 
-
+    num >> nbr;
+    return nbr;
+}
 
 std::string intToString(int value) {
     std::ostringstream os;
     os << value;
     return os.str();
 }
+
+
+void SetSocketToNonBlocking(int fd)
+{
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) 
+    {
+        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
+    }
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) 
+    {
+        throw std::runtime_error(std::string("fcntl: ") + strerror(errno));
+    }
+}
+
+

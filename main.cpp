@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/07 21:37:36 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/09 00:54:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,10 +155,10 @@ int main(int ac, char **av)
         std::cout << "===============START==============="<<std::endl;
         
         HttpServer Server(checker);
-        Server.ForceReuse();
-        Server.SetFdToNonBlocking();
-        Server.BindSocketToAddr();
-        Server.StartListining(1024);
+        // Server.ForceReuse();
+        // Server.SetFdToNonBlocking();
+        // Server.BindSocketToAddr();
+        // Server.StartListining(1024);
 
         NonBlockingServer(Server);
         // NormalServer(Server);
