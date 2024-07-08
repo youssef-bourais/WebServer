@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/08 02:51:48 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/08 05:16:22 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,8 @@
 #include <limits>
 #include <map>
 #include <stdint.h> // Include for uint32_t definition
-#include <sys/_select.h>
-#include <sys/_types/_fd_def.h>
+#include <sys/select.h>
+/* #include <sys/_types/_fd_def.h> */
 #include <sys/socket.h>
 #include <vector>
 #include "../Tools/Tools.hpp"
@@ -368,11 +368,19 @@ ssize_t HttpServer::SendMultiResponse(const HttpResponse &Response, int fd, int 
     return sendingbyt;
 }
 
+#include <ctime> // Correct include for time functions
+#include <sstream> // For stringstream to replace std::to_string
+
 void logMessage(const std::string &message) {
     std::ofstream log_file("server.log", std::ios_base::out | std::ios_base::app);
-    std::time_t now = std::time(0);
+    std::time_t now = std::time(0); // Use correct type and function
     log_file << std::ctime(&now) << ": " << message << std::endl;
 }
+/* void logMessage(const std::string &message) { */
+/*     std::ofstream log_file("server.log", std::ios_base::out | std::ios_base::app); */
+/*     std::time_t now = std::time(0); */
+/*     log_file << std::ctime(&now) << ": " << message << std::endl; */
+/* } */
 
 void HttpServer::AccepteMultipleConnectionAndRecive()
 {
@@ -415,7 +423,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 if(i == this->ServerFd)
                 {
                     int new_fd = this->AccepteConnection();
-                    logMessage("Accepted connection, fd: " + std::to_string(new_fd));
+                    logMessage("Accepted connection, fd: " + intToString(new_fd));
                     setNonBlocking(new_fd);
                     FD_SET(new_fd, &current_readfds);
                     FD_SET(new_fd, &current_writefds);
@@ -427,7 +435,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 {
                     //reding data from the socket of the client
                     buffers[i] = this->ReciveData(i);
-                    logMessage("Received data from fd: " + std::to_string(i));
+                    logMessage("Received data from fd: " + intToString(i));
                     Fds.push_back(i);
                     FD_SET(i, &current_writefds);
                 }
@@ -460,7 +468,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 }
                 else
                 {
-                    logMessage("Sent " + std::to_string(bytes_sent) + " bytes to fd: " + std::to_string(fd));
+                    logMessage("Sent " + intToString(bytes_sent) + " bytes to fd: " + intToString(fd));
                     message.erase(0, bytes_sent); // Remove sent bytes from buffer
                     if (message.empty())
                     {
@@ -471,7 +479,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                         Fds.erase(Fds.begin() + j);
                         j--;
                         ResponseMsg.erase(fd);
-                        logMessage("Connection closed, fd: " + std::to_string(fd));
+                        logMessage("Connection closed, fd: " + intToString(fd));
                     }
                 }
             }

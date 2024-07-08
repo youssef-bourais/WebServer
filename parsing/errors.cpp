@@ -1,12 +1,6 @@
 #include "Parsing.hpp"
 #include <sstream>
-
-std::string intToString(int num) 
-{
-  std::ostringstream oss;
-  oss << num;
-  return oss.str();
-}
+#include "../Tools/Tools.hpp"
 
 void Parsing::checkUnknownKey(std::vector<t_data> data)
 {

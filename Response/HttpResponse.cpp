@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/07 20:39:39 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/08 05:30:54 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ std::string HttpResponse::GetHttpStatusMessage() const
 
 HttpResponse::~HttpResponse()
 {
-
 }
 
 HttpResponse &HttpResponse::operator=(const HttpResponse &s) 
@@ -158,16 +157,22 @@ std::string ReadFile(std::string FilePath)
         close(fd);
         throw std::runtime_error(std::string("server: unable opening file:"));
     }
-    char Resource[GetFileSize(FilePath) + 1];
-    memset(Resource, 0, GetFileSize(FilePath) + 1);
-    int r = read(fd, Resource, GetFileSize(FilePath));
+    int size = GetFileSize(FilePath);
+    char* buffer = new char[size + 1];
+    /* char Resource[size + 1]; */
+    memset(buffer, 0, size + 1);
+    int r = read(fd, buffer, size);
     if(r == -1)
     {
         close(fd);
         throw std::runtime_error(std::string("server: unable reading file:"));
     }
+    buffer[r] = 0;
     close(fd);
-    return Resource;
+    std::string content(buffer);
+
+    delete[] buffer;
+    return content;
 }
 
 int FileOrDir(std::string Path)

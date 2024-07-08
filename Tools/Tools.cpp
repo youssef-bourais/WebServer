@@ -94,3 +94,13 @@ void PrintRequestInfo(const HttpRequest &Request)
         std::cout << Request.GetBody()<<std::endl;
 }
 
+#include <ctime> // Correct include for time functions
+#include <sstream> // For stringstream to replace std::to_string
+
+
+
+std::string intToString(int value) {
+    std::ostringstream os;
+    os << value;
+    return os.str();
+}

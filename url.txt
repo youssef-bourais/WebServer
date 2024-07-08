@@ -1,0 +1,7 @@
+http://localhost/main.cpp
+http://localhost/server.log
+http://localhost/socket.png
+http://localhost/main.o
+http://localhost/minipage
+http://localhost/webserver
+
