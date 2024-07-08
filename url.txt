@@ -1,7 +1,8 @@
-http://localhost/main.cpp
-http://localhost/server.log
-http://localhost/socket.png
-http://localhost/main.o
-http://localhost/minipage
-http://localhost/webserver
+http://localhost:5050/main.cpp
+http://localhost:80/main.cpp
+http://localhost:80/server.log
+http://localhost:5050/socket.png
+http://localhost:80/main.o
+http://localhost:8080/ConfiFile
+http://localhost:8080/webserver
 

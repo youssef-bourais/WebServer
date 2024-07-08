@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/08 05:30:54 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/08 19:33:07 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -405,12 +405,7 @@ std::string Getlenth(std::string File)
     return  ss.str();
 }
 
-std::string ToString(int num)
-{
-    std::stringstream ss;
-    ss << num;
-    return  ss.str();
-}
+
 
 std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpRequest &Request)
 {
@@ -435,7 +430,7 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     if(!Response.GetResponseBody().empty())
     {
         key = "Content-Length: ";
-        Value = ToString(Response.GetResponseBody().length());
+        Value = intToString(Response.GetResponseBody().length());
         tmp.push_back(KeyValue(key, Value));
     }
     key = "Allow: ";
