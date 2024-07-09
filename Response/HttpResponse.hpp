@@ -35,7 +35,9 @@ enum HTTPStatusCode
     HTTP_BAD_REQUEST = 400,
     HTTP_NOT_FOUND = 404,
     HTTP_METHOD_NOT_ALLOWED = 405,
-    HTTP_INTERNAL_SERVER_ERROR = 500
+    HTTP_INTERNAL_SERVER_ERROR = 500,
+    HTTP_URI_TOO_LONG = 414,
+    HTTP_ENTITY_TOO_LARGE = 413
 };
 
 class HttpResponse : public HttpMessage
@@ -44,10 +46,10 @@ class HttpResponse : public HttpMessage
         HTTPStatusCode StatusCode;
         std::string ResponseBody;
         std::list<KeyValue> ResponseHeaders;
-        std::vector<t_servers> ServerSetting;
+        t_servers ServerSetting;
 
     public:
-        HttpResponse(const HttpRequest &Message, std::vector<t_servers> ServerSetting);
+        HttpResponse(const HttpRequest &Message, t_servers &ServerSetting);
         ~HttpResponse();
         HttpResponse &operator=(HttpResponse const &s);
         HttpResponse(HttpResponse const &src);

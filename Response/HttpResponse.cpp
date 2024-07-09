@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/09 17:35:20 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 00:15:11 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,11 @@ std::string HttpResponse::GetHttpStatusMessage() const
             return "Method Not Allowed";
         case HTTP_INTERNAL_SERVER_ERROR:
             return "Internal Server Error";
+        case HTTP_URI_TOO_LONG:
+            return "Uri Too Long";
+        case HTTP_ENTITY_TOO_LARGE:
+            return "Entity Too Large";
+
         default:
             return "Unknown";
     }
@@ -181,6 +186,8 @@ int FileOrDir(std::string Path)
     std::string tmp = "." + Path;
     if(!stat(tmp.c_str(),&s))
     {
+    
+        std::cout << "size using stat: "<<s.st_size<<std::endl;
         if(s.st_mode & S_IFDIR)
             return 1;
         else if(s.st_mode & S_IFREG)
@@ -298,12 +305,54 @@ void ListDir(std::string &List, const std::string &Uri)
     List = HtmlPage;
 }
 
-std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
+bool hasDisallowedChars(const std::string& uri) 
+{
+    const std::string allowedChars =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
+
+    int i = 0;
+    while (i < uri.size()) 
+    {
+        if (allowedChars.find(uri[i]) == std::string::npos) 
+        {
+            return true; // Disallowed character found
+        }
+        i++;
+    }
+    return false;
+}
+
+
+int IsRequestGood(const HttpRequest &Request, HttpResponse &Response)
+{
+
+    std::string Uri = Request.GetPath();
+    
+    if(hasDisallowedChars(Uri))
+    {
+        Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        return 0;
+    }
+    if(Uri.size() > 2048)
+    {
+        Response.SetHTTPStatusCode(HTTP_URI_TOO_LONG);
+        return 0;
+    }
+    return 1;
+}
+
+
+std::string GetResource(const HttpRequest &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
     std::string Uri = Request.GetPath();
-    
+
+    int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
+
+    if(!IsRequestGood(Request, Response))
+        return "";
+        
     if(Method == "GET")
     {
         if(CheckIfResourceExists(Uri) && Uri != "/")
@@ -313,10 +362,18 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response)
             {
                 Resource = OpenDir(Uri);
                 ListDir(Resource, Uri);// still need to work recurcivly
+                Response.SetHTTPStatusCode(HTTP_OK);
             }
             else if(var == FILE_TYPE)
-                Resource = ReadFile(Uri);
-            Response.SetHTTPStatusCode(HTTP_OK);
+            {
+                if(GetFileSize(Uri) > StringToInt(ServerSetting.maxBodySize))
+                    Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+                else 
+                {
+                    Resource = ReadFile(Uri);
+                    Response.SetHTTPStatusCode(HTTP_OK);
+                }
+            }
         }
         else if(Uri == "/")
         {
@@ -353,28 +410,20 @@ HTTPStatusCode HttpResponse::GetStatusCode() const
 
 
 
-
-#include <ctime>  
 std::string GetDate() 
 {
-    time_t currentTime = std::time(NULL); // Correctly use time_t without std::
-    tm* timeinfo = std::gmtime(&currentTime); // Correctly use tm and gmtime without std::
+    time_t currentTime = std::time(NULL);
+    tm* timeinfo = std::gmtime(&currentTime);
 
     char buffer[80];
     strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S GMT", timeinfo);
     return std::string(buffer);
 }
 
-std::string Getlenth(std::string File)
-{
-    std::stringstream ss;
-    ss << GetFileSize(File);
-    return  ss.str();
-}
 
 
 
-std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpRequest &Request)
+std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpRequest &Request, t_servers &ServerSetting)
 {
     (void)Request;
     (void)Response;
@@ -383,7 +432,7 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     std::string Value;
 
     key = "Server: ";
-    Value = "Ragnar's";
+    Value = ServerSetting.server_names[0];
     tmp.push_back(KeyValue(key, Value));
 
     key = "Conenection: ";
@@ -407,12 +456,11 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     return tmp;
 }
 
-HttpResponse::HttpResponse(const HttpRequest &Request, std::vector<t_servers> ServerSetting) : HttpMessage(Request.GetRecivedLine())
+HttpResponse::HttpResponse(const HttpRequest &Request, t_servers &ServerSetting) : HttpMessage(Request.GetRecivedLine())
 {
     this->ServerSetting = ServerSetting;
-
-    this->ResponseBody = GetResource(Request, *this);
-    this->ResponseHeaders = SetResponseHeaders(*this, Request);
+    this->ResponseBody = GetResource(Request, *this, ServerSetting);
+    this->ResponseHeaders = SetResponseHeaders(*this, Request, ServerSetting);
 }
 
 

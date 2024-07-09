@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/09 16:12:28 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/09 22:58:39 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <cstring>
 #include <limits>
 #include <map>
+#include <ostream>
 #include <stdint.h> // Include for uint32_t definition
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -177,6 +178,25 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
     }
 }
 
+int GetServerIndex(std::vector<std::vector<int> > ListingSocket, int fd)
+{
+    int Index = 0;
+
+    for (int i = 0; i < ListingSocket.size(); i++) 
+    {
+        for (int j = 0; j < ListingSocket[i].size(); j++) 
+        {
+            if(ListingSocket[i][j] == fd)
+            {
+                Index = i;
+                return Index;
+            }
+        }
+    }
+    return -1;
+}
+
+
 void HttpServer::AccepteMultipleConnectionAndRecive()
 {
     int activity;
@@ -217,6 +237,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
         }
     }
 
+    int ServerIndex = 0;
 
     while(true)
     {
@@ -239,6 +260,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 if(it != ListingSocket.end())
                 {
                     int new_fd = this->AccepteConnection(fd);
+                    ServerIndex = GetServerIndex(Fds, fd);
                     setNonBlocking(new_fd);
                     FD_SET(new_fd, &current_readfds);
                     FD_SET(new_fd, &current_writefds);
@@ -268,7 +290,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 if(ResponseMsg.find(fd) == ResponseMsg.end())
                 {
                     HttpRequest Request(buffers[fd]);
-                    HttpResponse Response(Request, this->ServerSetting);
+                    HttpResponse Response(Request, this->ServerSetting[ServerIndex]);
                     ResponseMsg[fd] = this->GenarateResponse(Response, fd);
                 }
 
