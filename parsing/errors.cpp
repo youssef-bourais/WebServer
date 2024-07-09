@@ -41,27 +41,22 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 void Parsing::checkPortNumber(std::vector<std::string> data, size_t counter)
 {
 	std::string err;
+	std::vector<std::string>::iterator dataItr;
+
 	if (data.size() == 0)
-	{
 		return;
-		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a port to listen to.";
-		// throw std::runtime_error(err);
-	}
-	// else if (data.size() > 1)
-	// {
-	// 	err = "\x1b[31mError: Server " + intToString(counter) + " can't listen to multiple port.";
-	// 	throw std::runtime_error(err);
-	// }
-	else 
-	if (data[0].find_first_not_of("0987654321") != std::string::npos)
-	{
-		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid port number.";
-		throw std::runtime_error(err);
-	}
-	else if (data[0].length() > 4)
-	{
-		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid range port number.";
-		throw std::runtime_error(err);
+
+	dataItr = data.begin();
+
+	while (dataItr != data.end()) {
+		if (dataItr->find_first_not_of("0987654321") != std::string::npos) {
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid port number.";
+			throw std::runtime_error(err);
+		}else if (data[0].length() > 4) {
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid range port number.";
+			throw std::runtime_error(err);
+		}
+		dataItr++;
 	}
 }
 
