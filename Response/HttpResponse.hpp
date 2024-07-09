@@ -26,6 +26,8 @@
 #include <sstream>
 #include "../Request/HttpMessage.hpp"
 
+#include "../parsing/parsingStruct.hpp"
+
 enum HTTPStatusCode 
 {
     HTTP_OK = 200,
@@ -42,8 +44,10 @@ class HttpResponse : public HttpMessage
         HTTPStatusCode StatusCode;
         std::string ResponseBody;
         std::list<KeyValue> ResponseHeaders;
+        std::vector<t_servers> ServerSetting;
+
     public:
-        HttpResponse(const HttpRequest &Message);
+        HttpResponse(const HttpRequest &Message, std::vector<t_servers> ServerSetting);
         ~HttpResponse();
         HttpResponse &operator=(HttpResponse const &s);
         HttpResponse(HttpResponse const &src);

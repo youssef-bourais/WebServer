@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/08 19:33:07 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/09 17:35:20 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -351,41 +351,8 @@ HTTPStatusCode HttpResponse::GetStatusCode() const
     return this->StatusCode;
 }
 
-HTTPStatusCode GetHttpStatusCode(const HttpRequest &Request, const HttpResponse &response)
-{
-    (void)Request;
-    (void)response;
-
-    return HTTP_OK;
-}
 
 
-
-/* std::string GetDate() */
-/* { */
-/*     std::time_t currentTime = std::time(NULL); */
-/**/
-/*     std::tm* timeinfo = std::gmtime(&currentTime); */
-/**/
-/*     std::stringstream ss; */
-/**/
-/*     ss << GetDayName(timeinfo->tm_wday)  << ", " */
-/*        << timeinfo->tm_mday << " " */
-/*        << GetMonthName(timeinfo->tm_mon) << " " */
-/*        << (timeinfo->tm_year + 1900) << " " */
-/*        << timeinfo->tm_hour << ":" */
-/*        << timeinfo->tm_min << ":" */
-/*        << timeinfo->tm_sec << " GMT"; */
-
-    /* std::cout << "date: "<< ss.str()<<std::endl; */
-    /* std::time_t currenttime = std::time(null); */
-    /* std::tm *timeinfo = std::gmtime(&currenttime); */
-    /* static char buffer[80]; */
-    /**/
-    /* std::strftime(buffer, sizeof(buffer), "date: %a, %d %b %y %h:%m:%s gmt", timeinfo); */
-
-/*     return ss.str(); */
-/* } */
 
 #include <ctime>  
 std::string GetDate() 
@@ -440,9 +407,10 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     return tmp;
 }
 
-HttpResponse::HttpResponse(const HttpRequest &Request) : HttpMessage(Request.GetRecivedLine())
+HttpResponse::HttpResponse(const HttpRequest &Request, std::vector<t_servers> ServerSetting) : HttpMessage(Request.GetRecivedLine())
 {
-    this->StatusCode = GetHttpStatusCode(Request, *this);
+    this->ServerSetting = ServerSetting;
+
     this->ResponseBody = GetResource(Request, *this);
     this->ResponseHeaders = SetResponseHeaders(*this, Request);
 }

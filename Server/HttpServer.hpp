@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/09 00:47:27 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/09 16:12:26 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@
 class HttpServer
 {
     private:
-        int ServerFd;
-        int FdConnection;
         SA Address;
         char RecivedRequest[MAXLEN + 1];
         std::vector<t_servers> ServerSetting;
@@ -49,25 +47,14 @@ class HttpServer
 
         std::string GetRequest() const;
 
-        void ForceReuse() const;
-        void SetFdToNonBlocking();
-        void BindSocketToAddr() const;
-        void StartListining(int PendingConection) const;
-        void AccepteConnectionAndRecive();
-
-        int AccepteConnection();
-        const std::string ReciveData(int fd);
-        const std::string GenarateResponse(const HttpResponse &Response, int fd) const;
-        int SendChunckedResponse(int fd, std::string &message);
 
         void AccepteMultipleConnectionAndRecive();
+        const std::string ReciveData(int fd);
+        const std::string GenarateResponse(const HttpResponse &Response, int fd) const;
+        int SendResponse(int fd, std::string &message);
 
         
         int AccepteConnection(int fd);
-        
-   
-        void SendResponse(HttpResponse const &Response) const;
-        ssize_t SendMultiResponse(HttpResponse const &Response, int fd, int *helper) const;
 };
 
 
