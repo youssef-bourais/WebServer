@@ -40,27 +40,29 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 
 void Parsing::checkPortNumber(std::vector<std::string> data, size_t counter)
 {
+	std::vector<std::string>::iterator itr;
 	std::string err;
-	if (data.size() == 0)
-	{
-		return;
-		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a port to listen to.";
-		// throw std::runtime_error(err);
-	}
-	else if (data.size() > 1)
-	{
-		err = "\x1b[31mError: Server " + intToString(counter) + " can't listen to multiple port.";
-		throw std::runtime_error(err);
-	}
-	else if (data[0].find_first_not_of("0987654321") != std::string::npos)
-	{
-		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid port number.";
-		throw std::runtime_error(err);
-	}
-	else if (data[0].length() > 4)
-	{
-		err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid range port number.";
-		throw std::runtime_error(err);
+
+	itr = data.begin();
+	while (itr != data.end()) {
+		if (itr->length() == 0)
+		{
+			itr++;
+			continue;
+		}
+		if (checkDuplicatedValues(data)) {
+			err = "\x1b[31mError: Server " + intToString(counter) + " has a duplicated ports";
+			throw std::runtime_error(err);
+		}
+		if (itr->find_first_not_of("0987654321") != std::string::npos) {
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid port number.";
+			throw std::runtime_error(err);
+		}
+		if (itr->length() > 4) {
+			err = "\x1b[31mError: Server " + intToString(counter) + " don't have a valid range port number.";
+			throw std::runtime_error(err);
+		}
+		itr++;
 	}
 }
 
@@ -115,6 +117,7 @@ void Parsing::checkDuplicatedHosts(std::vector<std::string> data, std::string va
 {
 	if (std::find(data.begin(), data.end(), value) != data.end())
 		throw std::runtime_error("\x1b[31mError: Duplicated hosts between servers.");
+		
 }
 
 void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
@@ -197,9 +200,14 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		holder = getRule(*itr, "listen");
 		if (holder.size() > 0)
 		{
-			checkPortNumber(getRule(*itr, "listen"), counter);
-			checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
-			portsHolder.push_back(getRule(*itr, "listen")[0]);
+			
+			holder = getRule(*itr, "listen");
+			checkPortNumber(holder, counter);
+			
+			// checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
+			portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
+			if (checkDuplicatedValues(portsHolder))
+				throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
 		}
 		holder = getRule(*itr, "host");
 		if (holder.size() > 0)
