@@ -117,6 +117,7 @@ void Parsing::checkDuplicatedHosts(std::vector<std::string> data, std::string va
 {
 	if (std::find(data.begin(), data.end(), value) != data.end())
 		throw std::runtime_error("\x1b[31mError: Duplicated hosts between servers.");
+		
 }
 
 void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
