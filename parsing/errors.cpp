@@ -200,9 +200,14 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		holder = getRule(*itr, "listen");
 		if (holder.size() > 0)
 		{
-			checkPortNumber(getRule(*itr, "listen"), counter);
-			checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
-			portsHolder.push_back(getRule(*itr, "listen")[0]);
+			
+			holder = getRule(*itr, "listen");
+			checkPortNumber(holder, counter);
+			
+			// checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
+			portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
+			if (checkDuplicatedValues(portsHolder))
+				throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
 		}
 		holder = getRule(*itr, "host");
 		if (holder.size() > 0)
