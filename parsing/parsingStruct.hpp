@@ -41,4 +41,9 @@ typedef struct t_servers
 
 } t_servers;
 
+
+typedef struct t_locations {
+	
+}t_locations;
+
 #endif

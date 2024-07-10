@@ -59,6 +59,27 @@ class Parsing : private FileReader {
 		std::string removeChars(std::string str, std::string toRemove);
 		int findWordPos(std::string str, std::string word);
 		std::string getServer(void);
+		template <typename T>
+		bool checkDuplicatedValues(std::vector<T> data) {
+			typename std::vector<T>::iterator itr;
+			typename std::vector<T>::iterator itr2;
+			size_t counter;
+			itr = data.begin();
+			while (itr != data.end()) {
+				counter = 0;
+				itr2 = data.begin();
+				while (itr2 != data.end()) {
+					if (itr->compare(*itr2) == 0)
+						counter++;
+					itr2++;
+				}
+				if (counter > 1)
+					return true;
+				itr++;
+			}
+			return false;
+		}
+
 		
 
 	public:
