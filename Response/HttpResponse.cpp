@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 00:15:11 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 17:34:38 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -387,6 +387,7 @@ std::string GetResource(const HttpRequest &Request, HttpResponse &Response, t_se
     }
     else if(Method == "POST")
     {
+        Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
 
     }
     else if(Method == "DELETE")

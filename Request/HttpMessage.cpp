@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/06/28 14:14:14 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 23:01:37 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,10 +47,10 @@ std::string HttpMessage::GetHost() const
      std::list<KeyValue>::const_iterator it = this->HttpHeaders.begin();
     while (it != this->HttpHeaders.end()) 
     {
-        std::cout << it->HttpHeader<<std::endl;
         if(it->HttpHeader == "Host")
         {
             str = it->HttpValue;
+            return str;
         }
         it++;
     }
@@ -108,41 +108,41 @@ void HttpMessage::PrintRequest() const
     std::cout << this->RecivedLine;
 }
 
-std::list<KeyValue> InitHttpheaders(std::string Line)
-{
-    std::list<KeyValue> headers;
-    int start_pos = Line.find("\r\n") + 2;
-    std::string tmp;
+// std::list<KeyValue> InitHttpheaders(std::string Line)
+// {
+//     std::list<KeyValue> headers;
+//     int start_pos = Line.find("\r\n") + 2;
+//     std::string tmp;
+//
+//     while (start_pos < (int)Line.length()) 
+//     {
+//         if(Line[start_pos] == '\r')
+//         {
+//             start_pos += 2;
+//             unsigned long del = tmp.find(":");
+//             if(del == std::string::npos)
+//                 continue;
+//             std::string key = tmp.substr(0, del);
+//             std::string value = tmp.substr(del + 2, tmp.length());
+//             headers.push_back(KeyValue(key,value));
+//             tmp = "";
+//             continue;
+//         }
+//         tmp += Line[start_pos];
+//         start_pos++;
+//     }
+//     return headers;
+// }
 
-    while (start_pos < (int)Line.length()) 
-    {
-        if(Line[start_pos] == '\r')
-        {
-            start_pos += 2;
-            unsigned long del = tmp.find(":");
-            if(del == std::string::npos)
-                continue;
-            std::string key = tmp.substr(0, del);
-            std::string value = tmp.substr(del + 2, tmp.length());
-            headers.push_back(KeyValue(key,value));
-            tmp = "";
-            continue;
-        }
-        tmp += Line[start_pos];
-        start_pos++;
-    }
-    return headers;
-}
 
-
-std::string GetVersion(std::string RecivedLine)
-{
-    int first_space = RecivedLine.find(' ');
-    int start = RecivedLine.find(' ', first_space + 1);
-    int end = RecivedLine.find('\n');
-    std::string n = RecivedLine.substr(start + 1, end - start - 2);
-    return n;
-}
+// std::string GetVersion(std::string RecivedLine)
+// {
+//     int first_space = RecivedLine.find(' ');
+//     int start = RecivedLine.find(' ', first_space + 1);
+//     int end = RecivedLine.find('\n');
+//     std::string n = RecivedLine.substr(start + 1, end - start - 2);
+//     return n;
+// }
 
 std::string getBody(std::string RecivedLine)
 {
@@ -172,7 +172,7 @@ int checkifbodyexist(std::list<KeyValue>::iterator begin, std::list<KeyValue>::i
 HttpMessage::HttpMessage(std::string RecivedLine)
 {
     this->RecivedLine = RecivedLine; 
-    this->HttpVersion = GetVersion(RecivedLine); 
+    // this->HttpVersion = GetVersion(RecivedLine); 
     this->HttpHeaders = InitHttpheaders(RecivedLine); 
     if(checkifbodyexist(this->HttpHeaders.begin(), this->HttpHeaders.end())) 
         this->Body = getBody(RecivedLine);

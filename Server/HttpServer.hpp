@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 00:50:09 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 17:21:11 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class HttpServer
         const std::string ReciveData(int fd);
         const std::string GenarateResponse(const HttpResponse &Response, int fd) const;
         int SendResponse(int fd, std::string &message);
+
 
         
         int AccepteConnection(int fd);

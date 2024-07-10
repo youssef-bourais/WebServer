@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 01:05:30 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 22:49:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <vector>
 #include "../Tools/Tools.hpp"
 
+#include "../Request/RequestParsser.hpp"
 
 #define SP " "
 
@@ -102,12 +103,21 @@ int HttpServer::AccepteConnection(int fd)
 
 const std::string HttpServer::ReciveData(int fd)
 {    
-    int bufferSize = 12;
-    char buffer[bufferSize];
-    // int r = recv(fd, this->RecivedRequest, MAXLEN - 1, 0);
+    RequestParsser Request(fd);
+    exit(0);
+    // int r = recv(fd, this->RecivedRequest, MAXLEN - 1 + 5000, 0);
+    // std::cout << this->RecivedRequest<<std::endl;
+    // exit(0);
+    //
+
 
     int totalBytesRead = 0;
+    int bufferSize = 1024;
+    char buffer[bufferSize + 1];
     std::string request;
+
+
+    int end = 0;
     while (true) 
     {
         int bytesRead = recv(fd, buffer, bufferSize, 0);
@@ -115,14 +125,40 @@ const std::string HttpServer::ReciveData(int fd)
             break;
 
         totalBytesRead += bytesRead;
+        buffer[bytesRead] = '\0';
         request.append(buffer, bytesRead);
 
-        if (request.find("\r\n\r\n") != std::string::npos) 
+        end = request.find("\r\n\r\n"); 
+        if (end != std::string::npos) 
             break;
     }
 
-    std::cout << request;
+
+    std::cout << "request: "<<request<<std::endl;
+    std::cout << "===================="<<std::endl;
+    std::string remain = request.substr(end + 4, request.size() - end);
+    std::cout <<remain<<std::endl;
+
     exit(0);
+
+    totalBytesRead = 0;
+    std::string body;
+    while (true) 
+    {
+        int bytesRead = recv(fd, buffer, bufferSize, 0);
+        if(bytesRead <= 0)
+            break;
+        totalBytesRead += bytesRead;
+        buffer[bytesRead] = '\0';
+        std::cout << "buffer"<<buffer<<std::endl;
+        body.append(buffer, bytesRead);
+    }
+
+
+    std::cout << "body: "<<body<<std::endl;
+    exit(0);
+
+        // exit(0);
 
 
 
@@ -132,6 +168,7 @@ const std::string HttpServer::ReciveData(int fd)
     // {
     //     throw std::runtime_error(std::string("recv: "));
     // }
+    // std::cout << RecivedRequest<<std::endl;
     return this->RecivedRequest;
 }
 
