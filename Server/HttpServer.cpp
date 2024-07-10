@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/09 22:58:39 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/10 01:05:30 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,11 +102,36 @@ int HttpServer::AccepteConnection(int fd)
 
 const std::string HttpServer::ReciveData(int fd)
 {    
-    int r = recv(fd, this->RecivedRequest, MAXLEN - 1, 0);
-    if(r < 0)
+    int bufferSize = 12;
+    char buffer[bufferSize];
+    // int r = recv(fd, this->RecivedRequest, MAXLEN - 1, 0);
+
+    int totalBytesRead = 0;
+    std::string request;
+    while (true) 
     {
-        throw std::runtime_error(std::string("recv: "));
+        int bytesRead = recv(fd, buffer, bufferSize, 0);
+        if (bytesRead <= 0) 
+            break;
+
+        totalBytesRead += bytesRead;
+        request.append(buffer, bytesRead);
+
+        if (request.find("\r\n\r\n") != std::string::npos) 
+            break;
     }
+
+    std::cout << request;
+    exit(0);
+
+
+
+
+
+    // if(r < 0)
+    // {
+    //     throw std::runtime_error(std::string("recv: "));
+    // }
     return this->RecivedRequest;
 }
 
