@@ -2,7 +2,6 @@
 
 #include "RequestParsser.hpp"
 #include <sys/socket.h>
-#include <unistd.h>
 #include "../Tools/Tools.hpp"
 
 
@@ -123,7 +122,7 @@ std::list<KeyValuee> InitHttpheaders(std::string Line)
     int start_pos = Line.find("\r\n") + 2;
     std::string tmp;
 
-    while (start_pos < (int)Line.size()) 
+    while (start_pos < (int)Line.length()) 
     {
         if(Line[start_pos] == '\r')
         {
@@ -175,7 +174,7 @@ std::string RequestParsser::GetHeader(std::string key) const
 RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("")
 {
     std::string Line;
-    char Buffer[1024 + 1];
+    char Buffer[1024];
     int r = 0;
     int Tot = 0;
     int HeadersEnd = 0;
@@ -186,7 +185,6 @@ RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("
         r = recv(fd, Buffer, 1024, 0);
         if(r <= 0)
             break;
-        Buffer[r] = '\0';
         Tot += r;
         tmp.append(Buffer, r);
         HeadersEnd = tmp.find("\r\n\r\n");
@@ -195,15 +193,20 @@ RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("
     }
 
     this->Line = tmp.substr(0, HeadersEnd);
-    this->HttpHeaders = InitHttpheaders(tmp);
     this->HttpVersion = GetVersion(this->Line);
     this->Method = GetMethod(this->Line);
+    this->HttpHeaders = InitHttpheaders(this->Line);
     this->PrintHeaders();
+    exit(0);
     bool flage = !this->GetHeader("Transfer-Encoding").empty();
     if(flage)
-        std:: cout <<this->GetHeader("Transfer-Encoding")<<std::endl;
+        std:: cout << this->GetHeader("Content-Length")<<std::endl;
     else
         std::cout << "emty header"<<std::endl;
+    exit(0);
+
+
+
 
 
     //

@@ -29,6 +29,10 @@ class RequestParsser
         RequestParsser(const RequestParsser &copy);
         RequestParsser &operator=(const RequestParsser &src);
 
+
+
+        std::string GetHeader(std::string key) const;
+        void PrintHeaders() const;
         // std::string GetBody() const;
         // std::string GetHttpVersion() const;
         // std::string GetRecivedLine() const;

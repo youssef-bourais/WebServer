@@ -110,7 +110,7 @@ std::string intToString(int value) {
     return os.str();
 }
 
-
+#include <cstring>
 void SetSocketToNonBlocking(int fd)
 {
 

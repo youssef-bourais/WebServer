@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/04 15:22:32 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 23:01:37 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/11 00:49:27 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ HttpMessage::HttpMessage(std::string RecivedLine)
 {
     this->RecivedLine = RecivedLine; 
     // this->HttpVersion = GetVersion(RecivedLine); 
-    this->HttpHeaders = InitHttpheaders(RecivedLine); 
+    /* this->HttpHeaders = InitHttpheaders(RecivedLine);  */
     if(checkifbodyexist(this->HttpHeaders.begin(), this->HttpHeaders.end())) 
         this->Body = getBody(RecivedLine);
     else
