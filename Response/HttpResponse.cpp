@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/12 05:11:45 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/12 16:26:24 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,10 @@ std::string HttpResponse::GetHttpStatusMessage() const
             return "Uri Too Long";
         case HTTP_ENTITY_TOO_LARGE:
             return "Entity Too Large";
+        case HTTP_NOT_IMPLEMENTED:
+            return "Not Implemented";
+        case HTTP_FORBIDDEN:
+            return "Forbidden";
 
         default:
             return "Unknown";
@@ -338,9 +342,22 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
         Response.SetHTTPStatusCode(HTTP_URI_TOO_LONG);
         return 0;
     }
+    if(!Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Transfer-Encoding") != "chunked")
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_IMPLEMENTED);
+        return 0;
+    }
+    if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST")
+    {
+        Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+    }
     return 1;
 }
 
+int LocationIsMatching()
+{
+    return 1;
+}
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -354,6 +371,12 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 
     if(!IsRequestGood(Request, Response))
         return "";
+
+    if(!LocationIsMatching())
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        return "";
+    }
         
     if(Method == "GET")
     {
@@ -362,9 +385,14 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
             int var = checkFileType(Uri);
             if(var == DIR_TYPE)
             {
-                Resource = OpenDir(Uri);
-                ListDir(Resource, Uri);// still need to work recurcivly
-                Response.SetHTTPStatusCode(HTTP_OK);
+                if(ServerSetting.autoIndex)
+                {
+                    Resource = OpenDir(Uri);
+                    ListDir(Resource, Uri);// still need to work recurcivly
+                    Response.SetHTTPStatusCode(HTTP_OK);
+                }
+                else
+                    Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
             }
             else if(var == FILE_TYPE)
             {
