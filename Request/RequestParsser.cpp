@@ -1,6 +1,8 @@
 
 
 #include "RequestParsser.hpp"
+#include <cstdlib>
+#include <string>
 #include <sys/socket.h>
 #include <unistd.h>
 #include "../Tools/Tools.hpp"
@@ -20,6 +22,9 @@ RequestParsser &RequestParsser::operator=(const RequestParsser &src)
         this->HttpVersion = src.HttpVersion;
         this->Body = src.Body;
         this->Method = src.Method;
+        this->Path = src.Path;
+        this->Line = src.Line;
+        this->remain = src.remain;
     }
     return *this;
 }
@@ -170,12 +175,102 @@ std::string RequestParsser::GetHeader(std::string key) const
     return Value;
 }
 
+void RequestParsser::ReadBody(int fd, const std::string &lengthStr) 
+{
+    int length = StringToInt(lengthStr);
+    char buffer[1024];
+    
+    int bytesRead = 0;
+    while (bytesRead < length) 
+    {
+        int r = recv(fd, buffer, 1024, 0);
+        if (r <= 0)
+            break;
+        buffer[r] = '\0';
+        this->Body.append(buffer, r);
+        bytesRead += r;
+    }
+}
 
+void RequestParsser::ReadChunkedBody(int fd) 
+{
+    const int bufferSize = 1;
+    char buffer[bufferSize];
+    std::string request;
+    bool chunkedComplete = false;
 
-RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("")
+    size_t endChunked;
+    
+    request +=this->remain;
+    
+    while (!chunkedComplete) 
+    {
+        int bytesRead = recv(fd, buffer, bufferSize, 0);
+        if (bytesRead <= 0) 
+        {
+            break;
+        }
+
+        request.append(buffer, bytesRead);
+
+        size_t endChunked = request.find("0\r\n\r\n");
+        if (endChunked != std::string::npos) 
+        {
+            chunkedComplete = true;
+        }
+    }
+    
+    char ch;
+    while (true) 
+    {
+        std::string lengthStr;
+        int r = recv(fd, &ch, 1, 0);
+        if (r <= 0) 
+            break;
+        while (ch != '\r') 
+        {
+            lengthStr += ch;
+            r = recv(fd, &ch, 1, 0);
+            if (r <= 0) 
+                break;
+        }
+        recv(fd, &ch, 1, 0);  // Skip \n
+
+        int length = std::strtol(lengthStr.c_str(), NULL, 16);
+        if (length == 0) 
+            break;  // Last chunk
+
+        // Read the chunk data
+        int bytesRead = 0;
+        char buffer[1024];
+        while (bytesRead < length) 
+        {
+            r = recv(fd, buffer, std::min(length - bytesRead, 1024), 0);
+            if (r <= 0) 
+            {
+                std::cerr << "Failed to read chunk data or connection closed" << std::endl;
+                break;
+            }
+            Body.append(buffer, r);
+            bytesRead += r;
+        }
+        if (bytesRead < length) 
+            break;
+
+        // Skip \r\n after chunk data
+        recv(fd, &ch, 1, 0);
+        if (ch != '\r') 
+            break;
+        recv(fd, &ch, 1, 0);
+        if (ch != '\n') 
+            break;
+    }
+}
+
+RequestParsser::RequestParsser(int fd) : remain(""), Fd(fd), HttpVersion("HTTP/1.1"), Body("") 
 {
     std::string Line;
-    char Buffer[1024 + 1];
+    char Buffer[20 + 1];
     int r = 0;
     int Tot = 0;
     int HeadersEnd = 0;
@@ -183,7 +278,7 @@ RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("
     
     while (true) 
     {
-        r = recv(fd, Buffer, 1024, 0);
+        r = recv(fd, Buffer, 20, 0);
         if(r <= 0)
             break;
         Buffer[r] = '\0';
@@ -198,22 +293,38 @@ RequestParsser::RequestParsser(int fd) : Fd(fd), HttpVersion("HTTP/1.1"), Body("
     this->HttpHeaders = InitHttpheaders(tmp);
     this->HttpVersion = GetVersion(this->Line);
     this->Method = GetMethod(this->Line);
-    this->PrintHeaders();
-    bool flage = !this->GetHeader("Transfer-Encoding").empty();
-    if(flage)
-        std:: cout <<this->GetHeader("Transfer-Encoding")<<std::endl;
-    else
-        std::cout << "emty header"<<std::endl;
+    this->Path = getPath(this->Line);
 
 
-    //
-    // std::string remainBody = tmp.substr(HeadersEnd + 4, tmp.size() - HeadersEnd);
-    // if()
-    // {
-    //
-    // }
-    // std::cout << Body<<std::endl;
+    if (!this->GetHeader("Transfer-Encoding").empty() && this->GetHeader("Transfer-Encoding") == "chunked") 
+    {
+        if(this->Line.size() < tmp.size())
+        {
+            std::string remain = tmp.substr(HeadersEnd + 8, tmp.size());
+            this->remain = remain;
+        }
+        ReadChunkedBody(fd);
+    }
+    else if (!this->GetHeader("Content-Length").empty()) 
+        ReadBody(fd, this->GetHeader("Content-Length"));
+}
+
+std::string RequestParsser::GetPath() const
+{
+    return this->Path;
+}
+
+std::string RequestParsser::GetBody() const
+{
+    return this->Body;
+}
+RequestParsser::RequestParsser()
+{
 
 }
 
+std::string RequestParsser::GetHttpMethod() const
+{
+    return this->Method;
+}
 

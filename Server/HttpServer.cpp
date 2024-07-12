@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 22:49:45 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/12 04:36:40 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,80 +101,16 @@ int HttpServer::AccepteConnection(int fd)
     return client_socket;
 }
 
-const std::string HttpServer::ReciveData(int fd)
+RequestParsser HttpServer::ReciveData(int fd)
 {    
     RequestParsser Request(fd);
-    exit(0);
-    // int r = recv(fd, this->RecivedRequest, MAXLEN - 1 + 5000, 0);
-    // std::cout << this->RecivedRequest<<std::endl;
-    // exit(0);
-    //
-
-
-    int totalBytesRead = 0;
-    int bufferSize = 1024;
-    char buffer[bufferSize + 1];
-    std::string request;
-
-
-    int end = 0;
-    while (true) 
-    {
-        int bytesRead = recv(fd, buffer, bufferSize, 0);
-        if (bytesRead <= 0) 
-            break;
-
-        totalBytesRead += bytesRead;
-        buffer[bytesRead] = '\0';
-        request.append(buffer, bytesRead);
-
-        end = request.find("\r\n\r\n"); 
-        if (end != std::string::npos) 
-            break;
-    }
-
-
-    std::cout << "request: "<<request<<std::endl;
-    std::cout << "===================="<<std::endl;
-    std::string remain = request.substr(end + 4, request.size() - end);
-    std::cout <<remain<<std::endl;
-
-    exit(0);
-
-    totalBytesRead = 0;
-    std::string body;
-    while (true) 
-    {
-        int bytesRead = recv(fd, buffer, bufferSize, 0);
-        if(bytesRead <= 0)
-            break;
-        totalBytesRead += bytesRead;
-        buffer[bytesRead] = '\0';
-        std::cout << "buffer"<<buffer<<std::endl;
-        body.append(buffer, bytesRead);
-    }
-
-
-    std::cout << "body: "<<body<<std::endl;
-    exit(0);
-
-        // exit(0);
-
-
-
-
-
-    // if(r < 0)
-    // {
-    //     throw std::runtime_error(std::string("recv: "));
-    // }
-    // std::cout << RecivedRequest<<std::endl;
-    return this->RecivedRequest;
+    return Request;
 }
 
 const std::string HttpServer::GenarateResponse(const HttpResponse &Response, int fd) const
 {
-    std::string FinalResponse = Response.GetHttpVersion() + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
+    std::string HttpVersion = "HTTP/1.1";
+    std::string FinalResponse = HttpVersion + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
     std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
     std::list<KeyValue>::const_iterator itend = Response.GetHeadersEnd();
     while(it != itend)
@@ -284,7 +220,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
     timeout.tv_sec  = 1;
     timeout.tv_usec = 0;
 
-    std::map<int , std::string> buffers;
+    std::map<int , RequestParsser> buffers;
     std::map<int, std::string> ResponseMsg;
     std::vector<int> allSocket;
     std::vector<int> ListingSocket;
@@ -301,6 +237,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 
     int ServerIndex = 0;
 
+    int tracker = 0;
     while(true)
     {
         ready_readfds = current_readfds; 
@@ -337,6 +274,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                 {
                     //reding data from the socket of the client
                     buffers[fd] = this->ReciveData(fd);
+                    /* buffers.insert(std::make_pair(fd, this->ReciveData(fd))); */
                     FD_SET(fd, &current_writefds);
                     WritingSocket.push_back(fd);
                 }
@@ -351,8 +289,8 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
             {
                 if(ResponseMsg.find(fd) == ResponseMsg.end())
                 {
-                    HttpRequest Request(buffers[fd]);
-                    HttpResponse Response(Request, this->ServerSetting[ServerIndex]);
+                    /* HttpRequest Request(buffers[fd]); */
+                    HttpResponse Response(buffers[fd], this->ServerSetting[ServerIndex]);
                     ResponseMsg[fd] = this->GenarateResponse(Response, fd);
                 }
 

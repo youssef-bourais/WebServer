@@ -21,18 +21,30 @@ class RequestParsser
         std::list<KeyValuee> HttpHeaders;
         std::string Body;
         std::string Method;
+        std::string Path;
         std::string Line;
+        std::string remain;
         int Fd;
     public:
+        RequestParsser();
         RequestParsser(int Fd);
         ~RequestParsser();
         RequestParsser(const RequestParsser &copy);
         RequestParsser &operator=(const RequestParsser &src);
 
 
-
-        std::string GetHeader(std::string key) const;
         void PrintHeaders() const;
+        
+        std::string GetHeader(std::string key) const;
+        std::string GetHttpMethod() const;
+        std::string GetPath() const;
+        std::string GetBody() const;
+
+        void ReadBody(int fd, const std::string &header);
+        void ReadChunkedBody(int fd);
+       
+        /* std::string GetHttpVersion() const; */
+
         // std::string GetBody() const;
         // std::string GetHttpVersion() const;
         // std::string GetRecivedLine() const;

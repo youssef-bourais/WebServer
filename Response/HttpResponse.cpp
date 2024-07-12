@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/10 17:34:38 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/12 05:11:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ HttpResponse &HttpResponse::operator=(const HttpResponse &s)
     return *this;
 }
 
-HttpResponse::HttpResponse(const HttpResponse& copy) : HttpMessage(copy) 
+HttpResponse::HttpResponse(const HttpResponse& copy) 
 {
     *this = copy;
 }
@@ -323,7 +323,7 @@ bool hasDisallowedChars(const std::string& uri)
 }
 
 
-int IsRequestGood(const HttpRequest &Request, HttpResponse &Response)
+int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
 {
 
     std::string Uri = Request.GetPath();
@@ -342,11 +342,13 @@ int IsRequestGood(const HttpRequest &Request, HttpResponse &Response)
 }
 
 
-std::string GetResource(const HttpRequest &Request, HttpResponse &Response, t_servers &ServerSetting)
+std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
     std::string Uri = Request.GetPath();
+
+
 
     int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
@@ -424,7 +426,7 @@ std::string GetDate()
 
 
 
-std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpRequest &Request, t_servers &ServerSetting)
+std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const RequestParsser &Request, t_servers &ServerSetting)
 {
     (void)Request;
     (void)Response;
@@ -457,8 +459,9 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const HttpR
     return tmp;
 }
 
-HttpResponse::HttpResponse(const HttpRequest &Request, t_servers &ServerSetting) : HttpMessage(Request.GetRecivedLine())
+HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
+    this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);
     this->ResponseHeaders = SetResponseHeaders(*this, Request, ServerSetting);

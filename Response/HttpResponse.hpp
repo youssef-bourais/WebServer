@@ -25,6 +25,7 @@
 
 #include <sstream>
 #include "../Request/HttpMessage.hpp"
+#include "../Request/RequestParsser.hpp"
 
 #include "../parsing/parsingStruct.hpp"
 
@@ -40,16 +41,17 @@ enum HTTPStatusCode
     HTTP_ENTITY_TOO_LARGE = 413
 };
 
-class HttpResponse : public HttpMessage
+class HttpResponse
 {
     private:
         HTTPStatusCode StatusCode;
         std::string ResponseBody;
         std::list<KeyValue> ResponseHeaders;
         t_servers ServerSetting;
+        RequestParsser Request;
 
     public:
-        HttpResponse(const HttpRequest &Message, t_servers &ServerSetting);
+        HttpResponse(const RequestParsser &Request, t_servers &ServerSetting);
         ~HttpResponse();
         HttpResponse &operator=(HttpResponse const &s);
         HttpResponse(HttpResponse const &src);
@@ -62,7 +64,6 @@ class HttpResponse : public HttpMessage
         
         std::list<KeyValue>::const_iterator GetHeadersBegin() const;
         std::list<KeyValue>::const_iterator GetHeadersEnd() const;
-
 };
 
 
