@@ -439,6 +439,9 @@ std::vector<std::string> Parsing::getRule(t_data server, std::string ruleName)
 		if (selectedRule.size() > 0 && selectedRule[0].compare(ruleName) == 0)
 		{
 			selectedRule.erase(selectedRule.begin());
+			if (selectedRule.size() == 0) {
+				throw std::runtime_error("\x1b[31mError: invalid number of arguments in listen key.");
+			}
 			return removeEmptyPos(selectedRule);
 		}
 		*itr++;
