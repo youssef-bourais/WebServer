@@ -96,7 +96,7 @@ class Parsing : private FileReader {
 		std::vector<std::string> getRule(t_data server, std::string ruleName) ;
 		std::vector<std::string> getLocationRule(t_data server, std::string location , std::string ruleName);
 		void checkForErrors(std::vector<t_data> data);
-		std::vector<t_servers> getServers(void) const;
+		std::vector<t_servers> getServers(void);
 };
 
 #endif

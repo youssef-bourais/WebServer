@@ -7,7 +7,7 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	std::vector<std::string>::iterator itr;
 	std::vector<t_data>::iterator dataItr;
 	std::vector<std::string> names;
-	names.push_back("listen");
+	names.push_back("listen"); //? Port numbers
 	names.push_back("server_names");
 	names.push_back("host");
 	names.push_back("root");
@@ -38,12 +38,18 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	}
 }
 
+// NOTE Ports checking
+
 void Parsing::checkPortNumber(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
 	std::string err;
 
 	itr = data.begin();
+	if (data.size() == 0) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " has no specified ports.";
+		throw std::runtime_error(err);
+	}
 	while (itr != data.end()) {
 		if (itr->length() == 0)
 		{
@@ -74,7 +80,7 @@ void Parsing::checkDuplicatedPort(std::vector<std::string> ports, std::string po
 		throw std::runtime_error("\x1b[31mError: Duplicated ports between servers.");
 }
 
-#include <cstdlib>  // for atoi
+// NOTE Host checking
 
 void Parsing::checkHost(std::vector<std::string> data, size_t counter)
 {
@@ -120,6 +126,8 @@ void Parsing::checkDuplicatedHosts(std::vector<std::string> data, std::string va
 		
 }
 
+// NOTE Allowd methods checking
+
 void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
@@ -141,7 +149,7 @@ void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 		*itr++;
 	}
 }
-// For now ....
+
 void Parsing::checkRepeatedMethods(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
@@ -162,16 +170,14 @@ void Parsing::checkRepeatedMethods(std::vector<std::string> data, size_t counter
 	}
 }
 
+// NOTE BodySize checking
+
 void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 {
 	std::string err;
 	std::vector<std::string>::iterator itr;
 	if (vec.size() == 0)
-	{
 		return;
-		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a specific bodySize.";
-		// throw std::runtime_error(err);
-	}
 	else if (vec.size() != 1)
 	{
 		err = "\x1b[31mError: Server " + intToString(counter) + " should only have one maxBodySize number.";
@@ -185,15 +191,76 @@ void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 	}
 }
 
-void checkingForLoactionPath(std::string path, size_t counter) {
+// NOTE Location paths checking
+
+void checkingForLoactionPath(std::string path, size_t counter, std::string porp) {
 	struct stat info;
 	std::string err;
 	if (stat(path.c_str(), &info) != 0) {
-		err = "\x1b[31mError: Server " + intToString(counter) + "have an invalide location path. don't exist.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " have an invalide " + porp + " path. don't exist.";
         throw std::runtime_error(err); // Path doesn't exist or err
     }
 	if (! (info.st_mode & S_IFDIR)) {
-		err = "\x1b[31mError: Server " + intToString(counter) + "have an invalide location path. is not a director.";
+		err = "\x1b[31mError: Server " + intToString(counter) + " have an invalide " + porp + " path. is not a director.";
+		throw std::runtime_error(err);
+	}
+}
+
+// NOTE Root director checking
+
+void checkForRootDirector (std::vector<std::string> path, size_t counter) {
+	std::string err;
+
+	if (path.size() == 0)
+		return;
+	else if (path.size() == 1)
+		checkingForLoactionPath(path[0], counter, "root");
+	else{
+		err = "\x1b[31mError: Server " + intToString(counter) + " have more than one root director.";
+		throw std::runtime_error(err);
+	}
+}
+
+
+// NOTE error page checking
+
+void checkErrorPage(std::vector<std::string> path, size_t counter) {
+	std::string err;
+	struct stat info;
+
+	if (path.size() == 0) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " no provided path for error page file.";
+		throw std::runtime_error(err);
+	} else if (path.size() > 1) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " only one error page file should be provided.";
+		throw std::runtime_error(err);
+
+	}
+	if (stat(path[0].c_str(), &info) != 0){
+		err = "\x1b[31mError: Server " + intToString(counter) + " provided path for error page file don't exist.";
+		throw std::runtime_error(err);
+	}
+
+	if ((info.st_mode & S_IFDIR)) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " provided path for error page file is a director path";
+		throw std::runtime_error(err);
+	}
+}
+
+
+// NOTE autoIndex check
+
+void checkAutoIndex(std::vector<std::string> autoIndex, size_t counter) {
+	std::string err;
+
+	if (autoIndex.size() == 0)
+		return;
+	if (autoIndex.size() > 1) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " auto index should only have one value (on, off).";
+		throw std::runtime_error(err);
+	}
+	if (autoIndex[0].compare("on") != 0 && autoIndex[0].compare("off") != 0) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " auto index should have an \"on\" or an \"off\" value";
 		throw std::runtime_error(err);
 	}
 }
@@ -211,42 +278,41 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 	itr = data.begin();
 	while (itr != data.end())
 	{
-		holder = getRule(*itr, "listen");
-		if (holder.size() > 0)
-		{
-			
-			holder = getRule(*itr, "listen");
-			checkPortNumber(holder, counter);
-			
-			// checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
-			portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
-			if (checkDuplicatedValues(portsHolder))
-				throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
-		}
+		holder = getRule(*itr, "listen");		
+		checkPortNumber(holder, counter);
+		portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
+		if (checkDuplicatedValues(portsHolder))
+			throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
+
 		holder = getRule(*itr, "host");
-		if (holder.size() > 0)
-		{
-			checkHost(getRule(*itr, "host"), counter);
-			checkDuplicatedHosts(hostsHolder, getRule(*itr, "host")[0]);
-			hostsHolder.push_back(getRule(*itr, "host")[0]);
-		}
+		checkHost(getRule(*itr, "host"), counter);
+		checkDuplicatedHosts(hostsHolder, getRule(*itr, "host")[0]);
+		hostsHolder.push_back(getRule(*itr, "host")[0]);
+
 		holder = getRule(*itr, "allowed_methods");
-		if (holder.size() > 0)
-		{
-			checkAllowedMethods(getRule(*itr, "allowed_methods"), counter);
-			checkRepeatedMethods(getRule(*itr, "allowed_methods"), counter);
-		}
+		checkAllowedMethods(getRule(*itr, "allowed_methods"), counter);
+		checkRepeatedMethods(getRule(*itr, "allowed_methods"), counter);
+
 		holder = getRule(*itr, "maxBodySize");
-		if (holder.size() > 0)
-			checkBodySize(getRule(*itr, "maxBodySize"), counter);
+		checkBodySize(holder, counter);
+
+		holder = getRule(*itr, "root");
+		checkForRootDirector(holder, counter);
+		
+		holder = getRule(*itr, "error_page");
+		checkErrorPage(holder, counter);
+
+		holder = getRule(*itr, "autoIndex");
+		checkAutoIndex(holder, counter);
+		// exit(1);
+
 		holder = itr->locations;
 		holderItr = holder.begin();
 		while (holderItr != holder.end()) {
 			std::cout << *holderItr << std::endl;
-			checkingForLoactionPath(*holderItr, counter);
+			checkingForLoactionPath(*holderItr, counter, "location");
 			holderItr++;
 		}
-
 		counter++;
 		*itr++;
 	}
