@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/12 16:26:24 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 03:10:52 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,10 @@ std::string HttpResponse::GetHttpStatusMessage() const
             return "Not Implemented";
         case HTTP_FORBIDDEN:
             return "Forbidden";
+        case HTTP_CONFLICT:
+            return  "Conflict";
+        case  HTTP_NO_CONTENT:
+            return "No Content";
 
         default:
             return "Unknown";
@@ -350,12 +354,32 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
     if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST")
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        return 0;
     }
     return 1;
 }
 
-int LocationIsMatching()
+
+
+
+int LocationIsMatching(t_servers ServerSetting, std::string Path)
 {
+    if(!CheckIfResourceExists(Path))
+        return 0;
+
+    std::string n = Path.substr(0, Path.find("/"));
+    std::cout << "k: "<<n<<std::endl;
+
+    std::string tmp = "/";
+    tmp += Path;
+    for (int i = 0;i < ServerSetting.locations.size();i++) 
+    {
+        // if()
+        // {
+
+        // }
+         std::cout << "path: "<<ServerSetting.locations[i].location<<std::endl;
+    }
     return 1;
 }
 
@@ -365,18 +389,16 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     std::string Method = Request.GetHttpMethod();
     std::string Uri = Request.GetPath();
 
-
-
     int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
         return "";
 
-    if(!LocationIsMatching())
-    {
-        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        return "";
-    }
+    // if(!LocationIsMatching(ServerSetting, Uri))
+    // {
+    //     Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+    //     return "";
+    // }
         
     if(Method == "GET")
     {
@@ -396,13 +418,8 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
             }
             else if(var == FILE_TYPE)
             {
-                if(GetFileSize(Uri) > StringToInt(ServerSetting.maxBodySize))
-                    Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
-                else 
-                {
-                    Resource = ReadFile(Uri);
-                    Response.SetHTTPStatusCode(HTTP_OK);
-                }
+                Resource = ReadFile(Uri);
+                Response.SetHTTPStatusCode(HTTP_OK);
             }
         }
         else if(Uri == "/")
@@ -417,11 +434,16 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     }
     else if(Method == "POST")
     {
-        Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
-
+        if(StringToInt(ServerSetting.maxBodySize) < Request.GetBody().size() )
+        {
+            Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+        }
     }
     else if(Method == "DELETE")
     {
+
+        Delete(Request, Response);
+        std::cout << "delete"<<std::endl;
 
     }
     else 
