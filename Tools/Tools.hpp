@@ -13,6 +13,16 @@
 
 #include <ctime> // Correct include for time functions
 #include <sstream> // For stringstream to replace std::to_string
+#include <iostream>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/errno.h>
+#include <cstdlib>
+#include <cstring>
+#include <dirent.h>
+#include "../Response/HttpResponse.hpp"
+
+
 
 
 
@@ -21,6 +31,11 @@
 #define UNKNOWN_TYPE -1
 
 
+
+void deleteDir(const std::string& path);
+bool isDirectory(const std::string& path);
+std::string removeLast(std::string str);
+void Delete (RequestParsser Request, HttpResponse &Response);
 int checkFileType(const std::string &path); 
 void ImOut(std::string msg);
 void printConfigFile(std::string Path);
