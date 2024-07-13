@@ -187,12 +187,13 @@ void Delete (RequestParsser Request, HttpResponse &Response)
     }
     if (isDirectory(rootPath)) 
     {
-        if (!requestPath.empty() && requestPath.back() == '/') // check if the path ends with '/'
+        if (!requestPath.empty() && requestPath.back() == '/') 
         {
-            if (access(rootPath.c_str(), W_OK) == 0) // check permission
+            if (access(rootPath.c_str(), W_OK) == 0) 
             {
-                deleteDir(removeLast(rootPath)); // delete the file
+                deleteDir(removeLast(rootPath)); 
                 std::remove(rootPath.c_str());
+                Response.SetHTTPStatusCode(HTTP_NO_CONTENT);
             }
             else 
                 Response.SetHTTPStatusCode(HTTP_FORBIDDEN);

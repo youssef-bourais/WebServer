@@ -10,23 +10,30 @@
 
 
 
-void deleteDir(const std::string& path) {
+void deleteDir(const std::string& path) 
+{
     DIR* dir = opendir(path.c_str());
 
     struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
+    while ((entry = readdir(dir)) != NULL) 
+    {
         // Skip the "." and ".." entries
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) 
+        {
             continue;
         }
          std::string fullPath = path + "/" + entry->d_name;
-        if (entry->d_type == DT_DIR) {
+        if (entry->d_type == DT_DIR) 
+        {
             // Recursively delete subdirectories
             deleteDir(fullPath);
             std::remove(fullPath.c_str()); // Remove the directory after contents are removed
-        } else {
+        } 
+        else 
+        {
             // Remove the file
-            if (std::remove(fullPath.c_str()) != 0) {
+            if (std::remove(fullPath.c_str()) != 0) 
+            {
                 std::cerr << "Error removing file: " << fullPath << std::endl;
             }
         }
@@ -49,8 +56,10 @@ bool isDirectory(const std::string& path)
     }
 }
 
-std::string removeLast(std::string str) {
-    if (!str.empty()) {
+std::string removeLast(std::string str) 
+{
+    if (!str.empty()) 
+    {
         str.resize(str.size() - 1); // Resize to remove the last character
     }
     return str; // Return the modified string

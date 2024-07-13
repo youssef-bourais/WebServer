@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 03:10:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 04:53:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -444,7 +444,6 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 
         Delete(Request, Response);
         std::cout << "delete"<<std::endl;
-
     }
     else 
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
