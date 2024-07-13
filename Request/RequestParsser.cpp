@@ -199,7 +199,6 @@ void RequestParsser::ReadChunkedBody(int fd)
     std::string request;
     bool chunkedComplete = false;
 
-    size_t endChunked;
     
     request +=this->remain;
     
@@ -267,7 +266,7 @@ void RequestParsser::ReadChunkedBody(int fd)
     }
 }
 
-RequestParsser::RequestParsser(int fd) : remain(""), Fd(fd), HttpVersion("HTTP/1.1"), Body("") 
+RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd)
 {
     std::string Line;
     char Buffer[20 + 1];
@@ -285,7 +284,7 @@ RequestParsser::RequestParsser(int fd) : remain(""), Fd(fd), HttpVersion("HTTP/1
         Tot += r;
         tmp.append(Buffer, r);
         HeadersEnd = tmp.find("\r\n\r\n");
-        if(HeadersEnd != std::string::npos)
+        if((unsigned long)HeadersEnd != std::string::npos)
             break;
     }
 

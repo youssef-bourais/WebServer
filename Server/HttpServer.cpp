@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 07:10:26 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 20:38:34 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ RequestParsser HttpServer::ReciveData(int fd)
 
 const std::string HttpServer::GenarateResponse(const HttpResponse &Response, int fd) const
 {
+    (void)fd;
     std::string HttpVersion = "HTTP/1.1";
     std::string FinalResponse = HttpVersion + SP + Response.HTTPStatusCodeToString() + SP + Response.GetHttpStatusMessage() + "\r\n";
     std::list<KeyValue>::const_iterator it = Response.GetHeadersBegin();
@@ -121,7 +122,6 @@ const std::string HttpServer::GenarateResponse(const HttpResponse &Response, int
     FinalResponse += "\r\n";
     FinalResponse += Response.GetResponseBody();
     
-    int response_length = strlen(FinalResponse.c_str());
     return FinalResponse;
 }
 
@@ -136,10 +136,10 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
  
     // PF_INET: ipv4 or (AF_UNSPEC) for both
     // SOCK_STREAM: TCP
-    for (int i = 0; i < ServerSetting.size();i++) 
+    for (int i = 0; i < (int)ServerSetting.size();i++) 
     {
         std::vector<int> ports;
-        for (int j = 0; j < ServerSetting[i].listen.size();j++) 
+        for (int j = 0; j < (int)ServerSetting[i].listen.size();j++) 
         {
             fd = socket(AF_INET, SOCK_STREAM, 0);
             if (fd  == -1) 
@@ -181,9 +181,9 @@ int GetServerIndex(std::vector<std::vector<int> > ListingSocket, int fd)
 {
     int Index = 0;
 
-    for (int i = 0; i < ListingSocket.size(); i++) 
+    for (int i = 0; i < (int)ListingSocket.size(); i++) 
     {
-        for (int j = 0; j < ListingSocket[i].size(); j++) 
+        for (int j = 0; j < (int)ListingSocket[i].size(); j++) 
         {
             if(ListingSocket[i][j] == fd)
             {
@@ -206,9 +206,9 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
     FD_ZERO(&current_readfds);
     FD_ZERO(&current_writefds);
 
-    for (int i = 0;i < this->Fds.size();i++) 
+    for (int i = 0;i < (int)this->Fds.size();i++) 
     {
-        for (int j = 0; j < this->Fds[i].size(); j++) 
+        for (int j = 0; j < (int)this->Fds[i].size(); j++) 
         {
             FD_SET(this->Fds[i][j], &current_readfds);
             if(this->Fds[i][j] > max_fd)
@@ -227,9 +227,9 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
     std::vector<int> ListingSocket;
     std::vector<int> WritingSocket;
 
-    for(int i = 0;i < this->Fds.size();i++)
+    for(int i = 0;i < (int)this->Fds.size();i++)
     {
-        for (int j = 0; j < this->Fds[i].size();j++) 
+        for (int j = 0; j < (int)this->Fds[i].size();j++) 
         {
             allSocket.push_back(this->Fds[i][j]);
             ListingSocket.push_back(this->Fds[i][j]);
@@ -238,7 +238,6 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 
     int ServerIndex = 0;
 
-    int tracker = 0;
     while(true)
     {
         ready_readfds = current_readfds; 
@@ -250,7 +249,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
         if(activity == 0)
             continue;
 
-        for (int i = 0;i < allSocket.size();i++) 
+        for (int i = 0;i < (int)allSocket.size();i++) 
         {
             int fd = allSocket[i];
             if(FD_ISSET(fd, &ready_readfds))
@@ -283,7 +282,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
         }
 
         // loping and checking if some fd in the writing set is ready to write to its fd (send respose to socket client)
-        for (int j = 0;j < WritingSocket.size();j++) 
+        for (int j = 0;j < (int)WritingSocket.size();j++) 
         {
             int fd = WritingSocket[j];
             if (FD_ISSET(fd, &ready_writefds)) // indicates that the socket's send buffer has space available to accept more data
@@ -317,7 +316,6 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
                         FD_CLR(fd, &current_writefds);
                         WritingSocket.erase(WritingSocket.begin() + j);
                         std::vector<int>::iterator it = allSocket.begin();
-                        int k = 0;
                         while (it != allSocket.end())
                         {
                             if (*it == fd) 

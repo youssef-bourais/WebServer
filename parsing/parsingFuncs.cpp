@@ -1,4 +1,5 @@
 #include "Parsing.hpp"
+#include <cstddef>
 
 bool Parsing::isWhiteSpace(char c){	
 	if (c == ' ' || c == '\t'  || c == '\n')
@@ -96,7 +97,7 @@ bool Parsing::checkBlockCurlyBraces(void) const{
 	closeCurlBraceCount = 0;
 	size_t blockLength = 0;
 	blockLength = this->block.length();
-	for (int idx = 0; idx < blockLength; idx++){
+	for (size_t idx = 0; idx < blockLength; idx++){
 		if (this->block[idx] == '{')
 			openCurlBraceCount++;
 		if (this->block[idx] == '}')
