@@ -7,7 +7,7 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	std::vector<std::string>::iterator itr;
 	std::vector<t_data>::iterator dataItr;
 	std::vector<std::string> names;
-	names.push_back("listen");
+	names.push_back("listen"); //? Port numbers
 	names.push_back("server_names");
 	names.push_back("host");
 	names.push_back("root");
@@ -38,12 +38,18 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	}
 }
 
+// NOTE Ports checking
+
 void Parsing::checkPortNumber(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
 	std::string err;
 
 	itr = data.begin();
+	if (data.size() == 0) {
+		err = "\x1b[31mError: Server " + intToString(counter) + " has no specified ports.";
+		throw std::runtime_error(err);
+	}
 	while (itr != data.end()) {
 		if (itr->length() == 0)
 		{
@@ -74,7 +80,7 @@ void Parsing::checkDuplicatedPort(std::vector<std::string> ports, std::string po
 		throw std::runtime_error("\x1b[31mError: Duplicated ports between servers.");
 }
 
-#include <cstdlib>  // for atoi
+// NOTE Host checking
 
 void Parsing::checkHost(std::vector<std::string> data, size_t counter)
 {
@@ -120,6 +126,8 @@ void Parsing::checkDuplicatedHosts(std::vector<std::string> data, std::string va
 		
 }
 
+// NOTE Allowd methods checking
+
 void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
@@ -141,7 +149,7 @@ void Parsing::checkAllowedMethods(std::vector<std::string> data, size_t counter)
 		*itr++;
 	}
 }
-// For now ....
+
 void Parsing::checkRepeatedMethods(std::vector<std::string> data, size_t counter)
 {
 	std::vector<std::string>::iterator itr;
@@ -162,16 +170,14 @@ void Parsing::checkRepeatedMethods(std::vector<std::string> data, size_t counter
 	}
 }
 
+// NOTE BodySize checking
+
 void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 {
 	std::string err;
 	std::vector<std::string>::iterator itr;
 	if (vec.size() == 0)
-	{
 		return;
-		// err = "\x1b[31mError: Server " + intToString(counter) + " don't have a specific bodySize.";
-		// throw std::runtime_error(err);
-	}
 	else if (vec.size() != 1)
 	{
 		err = "\x1b[31mError: Server " + intToString(counter) + " should only have one maxBodySize number.";
@@ -184,6 +190,8 @@ void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 		throw std::runtime_error(err);
 	}
 }
+
+// NOTE Location paths checking
 
 void checkingForLoactionPath(std::string path, size_t counter) {
 	struct stat info;
@@ -198,6 +206,14 @@ void checkingForLoactionPath(std::string path, size_t counter) {
 	}
 }
 
+// NOTE Root director checking
+
+void checkForRootDirector (std::string path, size_t counter) {
+	checkingForLoactionPath(path, counter);
+}
+
+
+
 void Parsing::checkForErrors(std::vector<t_data> data)
 {
 	std::vector<t_data>::iterator itr;
@@ -211,18 +227,11 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 	itr = data.begin();
 	while (itr != data.end())
 	{
-		holder = getRule(*itr, "listen");
-		if (holder.size() > 0)
-		{
-			
-			holder = getRule(*itr, "listen");
-			checkPortNumber(holder, counter);
-			
-			// checkDuplicatedPort(portsHolder, getRule(*itr, "listen")[0]);
-			portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
-			if (checkDuplicatedValues(portsHolder))
-				throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
-		}
+		holder = getRule(*itr, "listen");		
+		checkPortNumber(holder, counter);
+		portsHolder.insert(portsHolder.end(), holder.begin(), holder.end());
+		if (checkDuplicatedValues(portsHolder))
+			throw std::runtime_error("\x1b[31mError: Servers has duplicated ports.");
 		holder = getRule(*itr, "host");
 		if (holder.size() > 0)
 		{
@@ -236,6 +245,7 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 			checkAllowedMethods(getRule(*itr, "allowed_methods"), counter);
 			checkRepeatedMethods(getRule(*itr, "allowed_methods"), counter);
 		}
+		
 		holder = getRule(*itr, "maxBodySize");
 		if (holder.size() > 0)
 			checkBodySize(getRule(*itr, "maxBodySize"), counter);
@@ -246,7 +256,6 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 			checkingForLoactionPath(*holderItr, counter);
 			holderItr++;
 		}
-
 		counter++;
 		*itr++;
 	}
