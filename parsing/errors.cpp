@@ -185,12 +185,26 @@ void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 	}
 }
 
+void checkingForLoactionPath(std::string path, size_t counter) {
+	struct stat info;
+	std::string err;
+	if (stat(path.c_str(), &info) != 0) {
+		err = "\x1b[31mError: Server " + intToString(counter) + "have an invalide location path. don't exist.";
+        throw std::runtime_error(err); // Path doesn't exist or err
+    }
+	if (! (info.st_mode & S_IFDIR)) {
+		err = "\x1b[31mError: Server " + intToString(counter) + "have an invalide location path. is not a director.";
+		throw std::runtime_error(err);
+	}
+}
+
 void Parsing::checkForErrors(std::vector<t_data> data)
 {
 	std::vector<t_data>::iterator itr;
 	std::vector<std::string> portsHolder;
 	std::vector<std::string> hostsHolder;
 	std::vector<std::string> holder;
+	std::vector<std::string>::iterator holderItr;
 
 	checkUnknownKey(data);
 	size_t counter = 1;
@@ -225,6 +239,13 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		holder = getRule(*itr, "maxBodySize");
 		if (holder.size() > 0)
 			checkBodySize(getRule(*itr, "maxBodySize"), counter);
+		holder = itr->locations;
+		holderItr = holder.begin();
+		while (holderItr != holder.end()) {
+			std::cout << *holderItr << std::endl;
+			checkingForLoactionPath(*holderItr, counter);
+			holderItr++;
+		}
 
 		counter++;
 		*itr++;
