@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 04:53:45 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 07:56:43 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -319,7 +319,7 @@ bool hasDisallowedChars(const std::string& uri)
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
 
     int i = 0;
-    while (i < uri.size()) 
+    while (i < (int)uri.size()) 
     {
         if (allowedChars.find(uri[i]) == std::string::npos) 
         {
@@ -368,11 +368,11 @@ int LocationIsMatching(t_servers ServerSetting, std::string Path)
         return 0;
 
     std::string n = Path.substr(0, Path.find("/"));
-    std::cout << "k: "<<n<<std::endl;
+    std::cout << "n: "<<n<<std::endl;
 
     std::string tmp = "/";
     tmp += Path;
-    for (int i = 0;i < ServerSetting.locations.size();i++) 
+    for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
         // if()
         // {
@@ -389,7 +389,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     std::string Method = Request.GetHttpMethod();
     std::string Uri = Request.GetPath();
 
-    int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
+    // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
         return "";
@@ -434,7 +434,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     }
     else if(Method == "POST")
     {
-        if(StringToInt(ServerSetting.maxBodySize) < Request.GetBody().size() )
+        if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
         }
@@ -442,7 +442,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     else if(Method == "DELETE")
     {
 
-        Delete(Request, Response);
+        Delete(Request, Response, ServerSetting);
         std::cout << "delete"<<std::endl;
     }
     else 
@@ -510,6 +510,7 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
 
 HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
+    std::cout << Request.GetBody()<<std::endl;
     this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);

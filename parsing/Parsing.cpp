@@ -74,7 +74,7 @@ Parsing::~Parsing(void)
 
 size_t Parsing::readBlock(void)
 {
-	size_t counter = 0, lastNewLinePos,
+	size_t counter = 0,
 		   lineCounter = 0, openBraceCounter = 0,
 		   closeBraceCounter = 0;
 	std::vector<std::string> holder;
@@ -196,6 +196,7 @@ void Parsing::checkRepeatedLocations(std::vector<std::string> vec)
 
 void Parsing::collectLocationsPaths(std::vector<std::string> vec, t_data data, std::vector<std::string> &locations)
 {
+    (void) data;
 	std::vector<std::string>::iterator itr;
 
 	itr = vec.begin();
@@ -310,6 +311,7 @@ std::vector<std::string> Parsing::collectRulesNames(t_data data)
 
 void Parsing::checkUnknownKey(std::vector<std::string> rules)
 {
+    (void)rules;
 }
 
 std::string Parsing::getServer(void)

@@ -39,7 +39,7 @@ void printConfigFile(std::string Path)
     std::vector<t_servers> ServerSetting = parse.getServers();
     
     int i = 0;
-    while(i < ServerSetting.size())
+    while(i < (int)ServerSetting.size())
     {
         std::cout << "Server++++++"<<std::endl;
         printVect(ServerSetting[i].listen.begin(), ServerSetting[i].listen.end(), "listen");
@@ -53,7 +53,7 @@ void printConfigFile(std::string Path)
         std::cout << "root: " + ServerSetting[i].root<<std::endl;
 
         int j = 0;
-        while(j < ServerSetting[i].locations.size())
+        while(j < (int)ServerSetting[i].locations.size())
         {
             std::cout << "Locations++++++"<< std::endl;
 
@@ -127,23 +127,27 @@ void SetSocketToNonBlocking(int fd)
 
 
 
-void deleteDir(const std::string& path) {
+void deleteDir(const std::string& path) 
+{
     DIR* dir = opendir(path.c_str());
 
     struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        // Skip the "." and ".." entries
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+    while ((entry = readdir(dir)) != NULL) 
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) 
+        {
             continue;
         }
          std::string fullPath = path + "/" + entry->d_name;
-        if (entry->d_type == DT_DIR) {
-            // Recursively delete subdirectories
+        if (entry->d_type == DT_DIR) 
+        {
             deleteDir(fullPath);
-            std::remove(fullPath.c_str()); // Remove the directory after contents are removed
-        } else {
-            // Remove the file
-            if (std::remove(fullPath.c_str()) != 0) {
+            std::remove(fullPath.c_str()); 
+        } 
+        else 
+        {
+            if (std::remove(fullPath.c_str()) != 0) 
+            {
                 std::cerr << "Error removing file: " << fullPath << std::endl;
             }
         }
@@ -154,32 +158,27 @@ void deleteDir(const std::string& path) {
 
 bool isDirectory(const std::string& path)
 {
-    struct stat fileStat; // get the file status
-    if (stat(path.c_str(), &fileStat) == 0) // check if the file exists
-    {
-        return S_ISDIR(fileStat.st_mode); // check if it is a directory
-    }
+    struct stat fileStat;
+    if (stat(path.c_str(), &fileStat) == 0)
+        return S_ISDIR(fileStat.st_mode);
     else
-    {
-        std::cerr << "Error: " << std::strerror(errno) << std::endl; // error
+        std::cerr << "Error: " << std::strerror(errno) << std::endl;
         return false;
-    }
 }
 
-std::string removeLast(std::string str) {
-    if (!str.empty()) {
-        str.resize(str.size() - 1); // Resize to remove the last character
+std::string removeLast(std::string str) 
+{
+    if (!str.empty()) 
+    {
+        str.resize(str.size() - 1);
     }
-    return str; // Return the modified string
+    return str;
 }
 
-
-void Delete (RequestParsser Request, HttpResponse &Response)
+void Delete (RequestParsser Request, HttpResponse &Response, t_servers setting)
 {
     std::string requestPath = Request.GetPath();
-    std::cout << requestPath<<std::endl;
-    exit(0);
-    std::string rootPath = "./" + requestPath;  
+    std::string rootPath = "./" + setting.location + requestPath;  
     if (access(rootPath.c_str(), F_OK) == -1) // check if file exists
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);

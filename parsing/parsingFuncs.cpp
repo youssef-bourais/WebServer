@@ -65,8 +65,6 @@ std::vector<std::string> Parsing::split(std::string str, std::string delimiter){
 
 std::vector<std::string> Parsing::ft_split(std::string str, std::string c){
 	size_t wordsCount = wordsCounter(str, c);
-	size_t splitedIdx = 0;
-	size_t strIdx = 0;
 	std::vector<std::string> splited;
 	if (wordsCount <= 0)
 		return splited;

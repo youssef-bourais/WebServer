@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 02:40:35 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 07:10:26 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,6 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
     this->ServerSetting = parse.getServers();
     int fd;
  
-    // std::cout << StringToInt(ServerSetting[0].listen[0])<<std::endl;
     // PF_INET: ipv4 or (AF_UNSPEC) for both
     // SOCK_STREAM: TCP
     for (int i = 0; i < ServerSetting.size();i++) 

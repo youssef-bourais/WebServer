@@ -17,8 +17,8 @@ PARSING_HEADERS = ./parsing/Parsing.hpp ./parsing/FileReader.hpp ./parsing/parse
 HEADERS = ./Request/HttpMessage.hpp ./Request/HttpRequest.hpp ./Response/HttpResponse.hpp ./Server/HttpServer.hpp ./Tools/Tools.hpp ./Request/RequestParsser.hpp
 
 # Compiler and flags
-CC = c++
-CPPFLAGS = -std=c++98 -g -fsanitize=address 
+CC = c++ 
+CPPFLAGS = -Wall -Werror -Wextra -std=c++98 -g -fsanitize=address 
 
 # Object files
 SRC_OBJS = $(SRCS:.cpp=.o)
