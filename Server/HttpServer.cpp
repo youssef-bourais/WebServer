@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/12 04:36:40 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/13 02:40:35 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,11 +128,13 @@ const std::string HttpServer::GenarateResponse(const HttpResponse &Response, int
 
 HttpServer::HttpServer(const ErrorsChecker &checker)
 {
+   
     //making the config data ready
     Parsing parse(checker.GetConfigFilePath());
     this->ServerSetting = parse.getServers();
     int fd;
-
+ 
+    // std::cout << StringToInt(ServerSetting[0].listen[0])<<std::endl;
     // PF_INET: ipv4 or (AF_UNSPEC) for both
     // SOCK_STREAM: TCP
     for (int i = 0; i < ServerSetting.size();i++) 
@@ -149,7 +151,7 @@ HttpServer::HttpServer(const ErrorsChecker &checker)
             Address.sin_family = AF_INET; // ipv4
             Address.sin_addr.s_addr = htonl(INADDR_ANY); // any availabe local iP, we use htonl to convert the INADDR_ANY constant to network byte order
             Address.sin_port = htons(StringToInt(ServerSetting[i].listen[j])); // 
-            memset(RecivedRequest, 0, MAXLEN);
+                       memset(RecivedRequest, 0, MAXLEN);
 
             int opt = 1;
             // it helps in reuse of address and port. Prevents error such as: “address already in use”
