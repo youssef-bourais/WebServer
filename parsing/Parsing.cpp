@@ -507,6 +507,6 @@ std::vector<std::string> Parsing::getLocationRule(t_data server, std::string loc
 	return res;
 }
 
-std::vector<t_servers> Parsing::getServers(void) const {
+std::vector<t_servers> Parsing::getServers(void)  {
 	return this->servers;
 }
