@@ -193,11 +193,12 @@ void Parsing::checkBodySize(std::vector<std::string> vec, size_t counter)
 
 // NOTE Location paths checking
 
-void checkingForLoactionPath(std::string path, size_t counter, std::string porp) {
+void Parsing::checkingForLoactionPath(std::string path, size_t counter, std::string porp) {
 	struct stat info;
 	std::string err;
 	if (stat(path.c_str(), &info) != 0) {
 		err = "\x1b[31mError: Server " + intToString(counter) + " have an invalide " + porp + " path. don't exist.";
+		std::cout << path << std::endl;
         throw std::runtime_error(err); // Path doesn't exist or err
     }
 	if (! (info.st_mode & S_IFDIR)) {
@@ -208,7 +209,7 @@ void checkingForLoactionPath(std::string path, size_t counter, std::string porp)
 
 // NOTE Root director checking
 
-void checkForRootDirector (std::vector<std::string> path, size_t counter) {
+void Parsing::checkForRootDirectory (std::vector<std::string> path, size_t counter) {
 	std::string err;
 
 	if (path.size() == 0)
@@ -224,14 +225,16 @@ void checkForRootDirector (std::vector<std::string> path, size_t counter) {
 
 // NOTE error page checking
 
-void checkErrorPage(std::vector<std::string> path, size_t counter) {
+void Parsing::checkErrorPage(std::vector<std::string> path, size_t counter) {
 	std::string err;
 	struct stat info;
 
 	if (path.size() == 0) {
-		err = "\x1b[31mError: Server " + intToString(counter) + " no provided path for error page file.";
-		throw std::runtime_error(err);
-	} else if (path.size() > 1) {
+		// err = "\x1b[31mError: Server " + intToString(counter) + " no provided path for error page file.";
+		// throw std::runtime_error(err);
+		return;
+	} else 
+	if (path.size() > 1) {
 		err = "\x1b[31mError: Server " + intToString(counter) + " only one error page file should be provided.";
 		throw std::runtime_error(err);
 
@@ -250,7 +253,7 @@ void checkErrorPage(std::vector<std::string> path, size_t counter) {
 
 // NOTE autoIndex check
 
-void checkAutoIndex(std::vector<std::string> autoIndex, size_t counter) {
+void Parsing::checkAutoIndex(std::vector<std::string> autoIndex, size_t counter) {
 	std::string err;
 
 	if (autoIndex.size() == 0)
@@ -265,11 +268,16 @@ void checkAutoIndex(std::vector<std::string> autoIndex, size_t counter) {
 	}
 }
 
+
+
+
 void Parsing::checkForErrors(std::vector<t_data> data)
 {
 	std::vector<t_data>::iterator itr;
 	std::vector<std::string> portsHolder;
 	std::vector<std::string> hostsHolder;
+	std::vector<std::string> locationsHolder;
+	std::vector<std::string>::iterator locationsHolderItr;
 	std::vector<std::string> holder;
 	std::vector<std::string>::iterator holderItr;
 
@@ -297,21 +305,34 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		checkBodySize(holder, counter);
 
 		holder = getRule(*itr, "root");
-		checkForRootDirector(holder, counter);
+		checkForRootDirectory(holder, counter);
 		
 		holder = getRule(*itr, "error_page");
 		checkErrorPage(holder, counter);
 
 		holder = getRule(*itr, "autoIndex");
 		checkAutoIndex(holder, counter);
+
+
 		// exit(1);
 
-		holder = itr->locations;
-		holderItr = holder.begin();
-		while (holderItr != holder.end()) {
-			std::cout << *holderItr << std::endl;
-			checkingForLoactionPath(*holderItr, counter, "location");
-			holderItr++;
+		locationsHolder = itr->locations;
+		locationsHolderItr = locationsHolder.begin();
+		while (locationsHolderItr != locationsHolder.end()) {
+			std::cout << *locationsHolderItr << std::endl;
+			checkingForLoactionPath(*locationsHolderItr, counter, "location");
+
+			holder = getLocationRule(*itr, *locationsHolderItr, "root");
+			checkForRootDirectory(holder, counter);
+		
+			holder = getLocationRule(*itr, *locationsHolderItr, "error_page");
+			checkErrorPage(holder, counter);
+
+			holder = getLocationRule(*itr, *locationsHolderItr, "autoIndex");
+			checkAutoIndex(holder, counter);
+
+
+			locationsHolderItr++;
 		}
 		counter++;
 		*itr++;

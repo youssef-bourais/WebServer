@@ -502,7 +502,6 @@ std::vector<std::string> Parsing::getLocationRule(t_data server, std::string loc
 			*itr = itr->erase(0, itr->find_first_of(" \t\n"));
 			*itr = ft_trim(*itr);
 			 res.push_back(itr->substr(0, itr->find_first_of(" \t\n")));
-
 			return res;
 		}
 		*itr++;
