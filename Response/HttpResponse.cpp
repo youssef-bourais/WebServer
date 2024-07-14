@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 02:48:28 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 05:07:57 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -385,6 +385,15 @@ std::string rootPath(std::string path, std::string root)
 
 int LocationIsMatching(t_servers ServerSetting, std::string &Path)
 {
+    std::string rootpath = "var/www/html/";
+    if(ServerSetting.root.empty())
+    {
+        ServerSetting.root = rootpath;
+    }
+    else 
+    {
+        rootpath = ServerSetting.root;
+    }
     std::string realpath;
     
     realpath = rootPath(Path, ServerSetting.root);
@@ -398,7 +407,11 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
-    
+    // 
+        if(ServerSetting.locations[i].root.empty())
+        {
+            ServerSetting.locations[i].root = rootpath;
+        }
         std::string tmp2 = ServerSetting.locations[i].location.substr(2);
         if(tmp2[tmp2.size() - 1] == '/')
         {
@@ -444,8 +457,7 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
                 }
                 else 
                 {
-         
-         
+
                 }
             }
         }

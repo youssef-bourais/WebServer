@@ -47,9 +47,7 @@ std::vector<std::string> ErrorsChecker::split(std::string str, std::string delim
 	std::vector<std::string> splited;
 	std::string holder;
 	size_t idx = 0;
-	size_t idx2 = 0;
 	while (true){
-		idx2 = 0;
 		idx = str.find_first_of(delimiter);
 		if (idx == std::string::npos)
 			break;
