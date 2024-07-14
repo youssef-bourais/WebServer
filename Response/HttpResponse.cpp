@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 20:22:05 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 01:20:54 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,9 @@ int CheckIfResourceExists(std::string FilePath)
     if(FilePath.empty())
         return 0;
     if (access(FilePath.c_str(), F_OK) != -1) 
+    {
         return 1;
+    }
     return 0;
 }
 
@@ -362,24 +364,56 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
 
 
 
-int LocationIsMatching(t_servers ServerSetting, std::string Path)
+std::string rootPath(std::string path, std::string root)
 {
-    if(!CheckIfResourceExists(Path))
-        return 0;
+    std::string Path;
+    if(root.size() == 1 && root == "/")
+        root = "./";
 
-    std::string n = Path.substr(0, Path.find("/"));
-    std::cout << "n: "<<n<<std::endl;
+    if(root[root.size() - 1] != '/' && path[0] != '/')
+    {
+    
+        Path = root.substr(2) + "/" + path;
+    }
+    else 
+    {
+        Path = root.substr(2) + path;
+    }
+    return Path;
+}
 
-    std::string tmp = "/";
-    tmp += Path;
+
+int LocationIsMatching(t_servers ServerSetting, std::string &Path)
+{
+    std::string realpath;
+    
+    realpath = rootPath(Path, ServerSetting.root);
+    //
+    
+
+    
+    std::string tmp = Path;
+    
+    if(tmp.size() != 1)
+    {
+        tmp = tmp.substr(0, tmp.find("/"));
+    }
+    
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
-        // if()
-        // {
-
-        // }
-         std::cout << "path: "<<ServerSetting.locations[i].location<<std::endl;
+    
+        std::cout << "location : "<< i<< " "<<ServerSetting.locations[i].location<<std::endl;
+        if(ServerSetting.locations[i].location.substr(2) == tmp)
+        {
+            Path = ;
+            return 1;
+        }
     }
+   
+    if(!CheckIfResourceExists(realpath))
+        return 0;
+
+    Path = realpath;
     return 1;
 }
 
@@ -387,18 +421,19 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
-    std::string Uri = Request.GetPath();
+    std::string uri = Request.GetPath();
 
     // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
         return "";
 
-    // if(!LocationIsMatching(ServerSetting, Uri))
-    // {
-    //     Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-    //     return "";
-    // }
+    std::string &Uri = uri;
+    if(!LocationIsMatching(ServerSetting, Uri))
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        return "";
+    }
         
     if(Method == "GET")
     {

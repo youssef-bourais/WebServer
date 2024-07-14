@@ -79,7 +79,6 @@ void NormalizePath(std::string &Path)
 //checking for / at the begining and at the end and remove consecutive slashes
 void ParssPath(std::string &path)
 {    
-    NormalizePath(path);
     if(path.length() == 1)
         return;
     else 
@@ -104,9 +103,9 @@ void ParssPath(std::string &path)
         {
             if (!tmp.empty() && tmp[tmp.size() - 1]  == '/') 
                 tmp.erase(tmp.size() - 1);
-            value = checkFileType(tmp);
-            if(value == FILE_TYPE)
-                path = tmp;
+            // value = checkFileType(tmp);
+            // if(value == FILE_TYPE)
+            path = tmp;
             // else 
             //     path = "";
         }
@@ -118,6 +117,7 @@ std::string getPath(std::string RecivedLine)
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
+    NormalizePath(path);
     ParssPath(path);
     return path;
 }
