@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 05:07:57 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 18:36:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,7 +372,6 @@ std::string rootPath(std::string path, std::string root)
 
     if(root[root.size() - 1] != '/' && path[0] != '/')
     {
-    
         Path = root.substr(2) + "/" + path;
     }
     else 
@@ -385,7 +384,7 @@ std::string rootPath(std::string path, std::string root)
 
 int LocationIsMatching(t_servers ServerSetting, std::string &Path)
 {
-    std::string rootpath = "var/www/html/";
+    std::string rootpath = "./var/www/html/";
     if(ServerSetting.root.empty())
     {
         ServerSetting.root = rootpath;
@@ -396,7 +395,7 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     }
     std::string realpath;
     
-    realpath = rootPath(Path, ServerSetting.root);
+    realpath = rootPath(Path, rootpath);
     
     std::string tmp = Path;
     
@@ -412,31 +411,44 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
         {
             ServerSetting.locations[i].root = rootpath;
         }
-        std::string tmp2 = ServerSetting.locations[i].location.substr(2);
-        if(tmp2[tmp2.size() - 1] == '/')
+         std::string tmp2;
+        if(ServerSetting.locations[i].location.size() != 1)
+            tmp2 = ServerSetting.locations[i].location.substr(2);
+        else
+            tmp2 = ServerSetting.locations[i].location;
+
+        if(tmp2[tmp2.size() - 1] == '/' && tmp2.size() != 1)
         {
             tmp2 = tmp2.substr(0, tmp2.size() - 1);
         }
+         std::cout << "location: "<<tmp2<<std::endl;
+         std::cout << "path: "<< tmp<<std::endl;
+        int flage = 0;
+        if(tmp.find(".") != std::string::npos && tmp2 == "/")
+        {
+            flage = 1;
+        }
         
-        if(tmp2 == tmp)
+        if(tmp2 == tmp || flage)
         {
             std::string locationRoot = ServerSetting.locations[i].root;
-            if(!locationRoot.empty() && locationRoot[locationRoot.size() - 1] != '/')
+            if(locationRoot[locationRoot.size() - 1] != '/')
             {
                 locationRoot += "/";
             }
             if(!ServerSetting.locations[i].root.empty())
             {
-                if(locationRoot == "/")
+                std::string locationr;
+                if(locationRoot != "/")
                 {
-
+                    locationr = locationRoot.substr(2);
                 }
-                else 
-                {
-                    std::string locationr = locationRoot.substr(2);
-                    int Index = Path.find("/");
-                    Path = locationr + Path.substr(Index + 1);
-                }
+                else
+                    locationr = "";
+                
+                int Index = Path.find("/");
+                
+                Path = locationr + Path.substr(Index + 1);
                 return 1;
             }
             else
@@ -464,7 +476,9 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     }
    
     if(!CheckIfResourceExists(realpath))
+    {
         return 0;
+    }
 
     Path = realpath;
     return 1;
