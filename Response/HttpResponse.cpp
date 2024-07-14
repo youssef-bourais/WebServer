@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HttpResponse.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 03:10:52 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 02:06:21 by sait-bah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,9 @@ int CheckIfResourceExists(std::string FilePath)
     if(FilePath.empty())
         return 0;
     if (access(FilePath.c_str(), F_OK) != -1) 
+    {
         return 1;
+    }
     return 0;
 }
 
@@ -319,7 +321,7 @@ bool hasDisallowedChars(const std::string& uri)
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&'()*+,;=";
 
     int i = 0;
-    while (i < uri.size()) 
+    while (i < (int)uri.size()) 
     {
         if (allowedChars.find(uri[i]) == std::string::npos) 
         {
@@ -362,24 +364,56 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
 
 
 
-int LocationIsMatching(t_servers ServerSetting, std::string Path)
+std::string rootPath(std::string path, std::string root)
 {
-    if(!CheckIfResourceExists(Path))
+    std::string Path;
+    if(root.size() == 1 && root == "/")
+        root = "./";
+
+    if(root[root.size() - 1] != '/' && path[0] != '/')
+    {
+    
+        Path = root.substr(2) + "/" + path;
+    }
+    else 
+    {
+        Path = root.substr(2) + path;
+    }
+    return Path;
+}
+
+
+int LocationIsMatching(t_servers ServerSetting, std::string &Path)
+{
+    std::string realpath;
+    
+    realpath = rootPath(Path, ServerSetting.root);
+    //
+    
+
+    
+    std::string tmp = Path;
+    
+    if(tmp.size() != 1)
+    {
+        tmp = tmp.substr(0, tmp.find("/"));
+    }
+    
+    for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
+    {
+    
+        std::cout << "location : "<< i<< " "<<ServerSetting.locations[i].location<<std::endl;
+        if(ServerSetting.locations[i].location.substr(2) == tmp)
+        {
+            // Path = ;
+            return 1;
+        }
+    }
+   
+    if(!CheckIfResourceExists(realpath))
         return 0;
 
-    std::string n = Path.substr(0, Path.find("/"));
-    std::cout << "k: "<<n<<std::endl;
-
-    std::string tmp = "/";
-    tmp += Path;
-    for (int i = 0;i < ServerSetting.locations.size();i++) 
-    {
-        // if()
-        // {
-
-        // }
-         std::cout << "path: "<<ServerSetting.locations[i].location<<std::endl;
-    }
+    Path = realpath;
     return 1;
 }
 
@@ -387,18 +421,19 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
-    std::string Uri = Request.GetPath();
+    std::string uri = Request.GetPath();
 
-    int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
+    // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
         return "";
 
-    // if(!LocationIsMatching(ServerSetting, Uri))
-    // {
-    //     Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-    //     return "";
-    // }
+    std::string &Uri = uri;
+    if(!LocationIsMatching(ServerSetting, Uri))
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        return "";
+    }
         
     if(Method == "GET")
     {
@@ -434,7 +469,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     }
     else if(Method == "POST")
     {
-        if(StringToInt(ServerSetting.maxBodySize) < Request.GetBody().size() )
+        if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
         }
@@ -442,9 +477,8 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     else if(Method == "DELETE")
     {
 
-        Delete(Request, Response);
+        Delete(Request, Response, ServerSetting);
         std::cout << "delete"<<std::endl;
-
     }
     else 
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
@@ -511,6 +545,7 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
 
 HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
+    std::cout << Request.GetBody()<<std::endl;
     this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);

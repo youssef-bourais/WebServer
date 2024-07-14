@@ -35,7 +35,7 @@
 void deleteDir(const std::string& path);
 bool isDirectory(const std::string& path);
 std::string removeLast(std::string str);
-void Delete (RequestParsser Request, HttpResponse &Response);
+void Delete (RequestParsser Request, HttpResponse &Response, t_servers setting);
 int checkFileType(const std::string &path); 
 void ImOut(std::string msg);
 void printConfigFile(std::string Path);

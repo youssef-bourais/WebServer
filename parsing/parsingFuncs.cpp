@@ -1,4 +1,5 @@
 #include "Parsing.hpp"
+#include <cstddef>
 
 bool Parsing::isWhiteSpace(char c){	
 	if (c == ' ' || c == '\t'  || c == '\n')
@@ -65,8 +66,6 @@ std::vector<std::string> Parsing::split(std::string str, std::string delimiter){
 
 std::vector<std::string> Parsing::ft_split(std::string str, std::string c){
 	size_t wordsCount = wordsCounter(str, c);
-	size_t splitedIdx = 0;
-	size_t strIdx = 0;
 	std::vector<std::string> splited;
 	if (wordsCount <= 0)
 		return splited;
@@ -98,7 +97,7 @@ bool Parsing::checkBlockCurlyBraces(void) const{
 	closeCurlBraceCount = 0;
 	size_t blockLength = 0;
 	blockLength = this->block.length();
-	for (int idx = 0; idx < blockLength; idx++){
+	for (size_t idx = 0; idx < blockLength; idx++){
 		if (this->block[idx] == '{')
 			openCurlBraceCount++;
 		if (this->block[idx] == '}')

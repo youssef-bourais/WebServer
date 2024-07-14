@@ -46,4 +46,7 @@ typedef struct t_locations {
 	
 }t_locations;
 
+int post(t_servers server);
+
+
 #endif

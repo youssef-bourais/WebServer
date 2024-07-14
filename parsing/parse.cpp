@@ -12,7 +12,6 @@ bool parse(int ac, char **av)
 	std::vector<std::string> holder;
 	std::string loc;
 	std::vector<std::string>::iterator holderItr;
-	size_t serversCount = 1;
 
 	if (ac == 1)
 		filePath = DEFAULT_CONF_FILE;
