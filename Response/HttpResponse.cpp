@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 01:20:54 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 02:48:28 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -388,25 +388,66 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     std::string realpath;
     
     realpath = rootPath(Path, ServerSetting.root);
-    //
-    
-
     
     std::string tmp = Path;
     
     if(tmp.size() != 1)
     {
-        tmp = tmp.substr(0, tmp.find("/"));
+        tmp = tmp.substr(0, tmp.find("/") );
     }
     
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
     
-        std::cout << "location : "<< i<< " "<<ServerSetting.locations[i].location<<std::endl;
-        if(ServerSetting.locations[i].location.substr(2) == tmp)
+        std::string tmp2 = ServerSetting.locations[i].location.substr(2);
+        if(tmp2[tmp2.size() - 1] == '/')
         {
-            Path = ;
-            return 1;
+            tmp2 = tmp2.substr(0, tmp2.size() - 1);
+        }
+        
+        if(tmp2 == tmp)
+        {
+            std::string locationRoot = ServerSetting.locations[i].root;
+            if(!locationRoot.empty() && locationRoot[locationRoot.size() - 1] != '/')
+            {
+                locationRoot += "/";
+            }
+            if(!ServerSetting.locations[i].root.empty())
+            {
+                if(locationRoot == "/")
+                {
+
+                }
+                else 
+                {
+                    std::string locationr = locationRoot.substr(2);
+                    int Index = Path.find("/");
+                    Path = locationr + Path.substr(Index + 1);
+                }
+                return 1;
+            }
+            else
+            {
+                if(!ServerSetting.root.empty())
+                {
+                    if(ServerSetting.root == "/")
+                    {
+
+                    }
+                    else 
+                    {
+                        std::string tmp = ServerSetting.root.substr(2);
+                        int Index = Path.find("/");
+                        Path = tmp + Path.substr(Index + 1);
+                        return 1;
+                    }
+                }
+                else 
+                {
+         
+         
+                }
+            }
         }
     }
    
@@ -545,7 +586,6 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
 
 HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
-    std::cout << Request.GetBody()<<std::endl;
     this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);
