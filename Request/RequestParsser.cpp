@@ -179,6 +179,7 @@ void RequestParsser::ReadBody(int fd, const std::string &lengthStr)
 {
     int length = StringToInt(lengthStr);
     char buffer[1024];
+    this->Body += this->remain;
     
     int bytesRead = 0;
     while (bytesRead < length) 
@@ -269,7 +270,7 @@ void RequestParsser::ReadChunkedBody(int fd)
 RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd)
 {
     std::string Line;
-    char Buffer[20 + 1];
+    char Buffer[2024 + 1];
     int r = 0;
     int Tot = 0;
     int HeadersEnd = 0;
@@ -295,6 +296,7 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
     this->Path = getPath(this->Line);
 
 
+    // std::cout << tmp<<std::endl;
     if (!this->GetHeader("Transfer-Encoding").empty() && this->GetHeader("Transfer-Encoding") == "chunked") 
     {
         if(this->Line.size() < tmp.size())
@@ -303,9 +305,15 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
             this->remain = remain;
         }
         ReadChunkedBody(fd);
+        // std::cout << this->Body<<std::endl;
     }
     else if (!this->GetHeader("Content-Length").empty()) 
+    {
+
+        std::string remain = tmp.substr(HeadersEnd + 4, tmp.size());
+        this->remain = remain;
         ReadBody(fd, this->GetHeader("Content-Length"));
+    }
 }
 
 std::string RequestParsser::GetPath() const

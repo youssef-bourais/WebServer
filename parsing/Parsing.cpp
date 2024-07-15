@@ -69,7 +69,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 		itr++;
 	}
 
-	std::cout << "------------> " << this->servers[0].allowedMethods.size() << std::endl;
+	std::cout << "------------> " << this->servers[0].locations[0].redirect << std::endl;
 }
 
 Parsing::~Parsing(void)

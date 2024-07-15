@@ -6,14 +6,16 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 02:47:46 by sait-bah         ###   ########.fr       */
+/*   Updated: 2024/07/15 23:29:18 by sait-bah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "../Tools/Tools.hpp"
+#include <atomic>
 #include <cstdio>
 #include <string>
+#include <sys/syslimits.h>
 
 std::string GetDayName(int n) 
 {
@@ -270,6 +272,7 @@ std::string generateListItems(const std::string &fileAndDirNames, const std::str
 std::string InitPage(const std::string &List, const std::string &Uri)
 {
     std::string listContent = generateListItems(List, Uri);
+    std::cout << Uri<<std::endl;
 
     std::string htmlContent =
     "<!DOCTYPE html>\n"
@@ -353,7 +356,7 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
         Response.SetHTTPStatusCode(HTTP_NOT_IMPLEMENTED);
         return 0;
     }
-    if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST")
+    if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST" && !Request.GetBody().empty())
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
         return 0;
@@ -382,7 +385,8 @@ std::string rootPath(std::string path, std::string root)
 }
 
 
-int LocationIsMatching(t_servers ServerSetting, std::string &Path)
+
+int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
 {
     std::string rootpath = "./var/www/html/";
     if(ServerSetting.root.empty())
@@ -406,7 +410,6 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
-    // 
         if(ServerSetting.locations[i].root.empty())
         {
             ServerSetting.locations[i].root = rootpath;
@@ -421,8 +424,6 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
         {
             tmp2 = tmp2.substr(0, tmp2.size() - 1);
         }
-         std::cout << "location: "<<tmp2<<std::endl;
-         std::cout << "path: "<< tmp<<std::endl;
         int flage = 0;
         if(tmp.find(".") != std::string::npos && tmp2 == "/")
         {
@@ -436,8 +437,6 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
             {
                 locationRoot += "/";
             }
-            if(!ServerSetting.locations[i].root.empty())
-            {
                 std::string locationr;
                 if(locationRoot != "/")
                 {
@@ -449,40 +448,214 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
                 int Index = Path.find("/");
                 
                 Path = locationr + Path.substr(Index + 1);
-                return 1;
-            }
-            else
-            {
-                if(!ServerSetting.root.empty())
-                {
-                    if(ServerSetting.root == "/")
-                    {
-
-                    }
-                    else 
-                    {
-                        std::string tmp = ServerSetting.root.substr(2);
-                        int Index = Path.find("/");
-                        Path = tmp + Path.substr(Index + 1);
-                        return 1;
-                    }
-                }
-                else 
-                {
-
-                }
-            }
+                return i;
         }
     }
    
     if(!CheckIfResourceExists(realpath))
     {
-        return 0;
+        return -1;
     }
 
     Path = realpath;
-    return 1;
+    return -2;
 }
+
+int File(std::string Path)
+{
+    struct stat s;
+    std::string tmp = "./" + Path;
+    if(!stat(tmp.c_str(),&s))
+    {
+    
+        std::cout << "size using stat: "<<s.st_size<<std::endl;
+        if(s.st_mode & S_IFDIR)
+            return 1;
+        else if(s.st_mode & S_IFREG)
+            return 0;
+    }
+    return -1;
+}
+
+std::string HtmlToSring(std::string filePath)
+{
+
+    std::ifstream file(filePath.c_str());
+    if (!file.is_open()) 
+    {
+        return "";
+    }
+    std::string content;
+    std::string line;
+    while (std::getline(file, line)) 
+    {
+        content += line;
+        if (!file.eof()) 
+        {
+            content += "\n";
+        }
+    }
+
+    file.close();
+    return content;
+}
+
+std::string readHtmlPage(int index, t_servers ServerSetting) 
+{
+    if(ServerSetting.index.size() == 0)
+    {
+        ServerSetting.index.push_back("./HtmlPages/index.html");
+    }
+
+    std::string filePath;
+    if(index == -2)
+    {
+        int i = 0;
+        while (i < (int)ServerSetting.index.size()) 
+        {
+            if(CheckIfResourceExists(ServerSetting.index[i]))
+            {
+                filePath = ServerSetting.index[i];
+            }
+            else 
+            {
+                return "";
+            }
+            i++;
+        }
+    }
+    else 
+    {
+        std::string tmp;
+        if(ServerSetting.locations[index].index.empty())
+        {
+            for (int i = 0;i < (int)ServerSetting.index.size(); i++) 
+            {
+                if(CheckIfResourceExists(ServerSetting.index[i]))
+                {
+                    filePath = ServerSetting.index[i];
+                    break;
+                }
+                else 
+                {
+                    return "";
+                }
+            }
+        }
+        else 
+        {
+            for (int i = 0;i < (int)ServerSetting.locations[index].index.size();i++) 
+            {
+                if(CheckIfResourceExists(ServerSetting.locations[index].index[i]))
+                {
+                    filePath = ServerSetting.locations[index].index[i];
+                    break;
+                }
+                else 
+                {
+                    return "";
+                }
+            }
+        }
+    }
+    std::string content = HtmlToSring(filePath);
+    return content;
+}
+
+ int GetAutoIndex(t_servers ServerSetting, int index)
+ {
+    if(index == -2)
+    {
+        if(ServerSetting.index.size() == 0 && ServerSetting.autoIndex == true)
+        {
+            return 1; // dispaly dir
+        }
+        else if(ServerSetting.index.size() != 0) 
+        {
+            return 0; // read index page
+        }
+        else 
+        {
+            return -1; // Forbidden
+        }
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].index.size() == 0 && ServerSetting.locations[index].autoIndex == true)
+        {
+            return 1;
+        }
+        else if(ServerSetting.locations[index].index.size() != 0) 
+        {
+            return 0;
+        }
+        else 
+        {
+            if(ServerSetting.locations[index].index.empty())
+            {
+
+            }
+            return -1;
+        }
+    }
+     return 1;
+ }
+
+int IsMethodAllowed(t_servers ServerSetting, int index, std::string Method)
+{
+    if(ServerSetting.locations[index].allowedMethods.size() > 3 || ServerSetting.locations[index].allowedMethods.size() == 0)
+    {
+        ServerSetting.locations[index].allowedMethods.assign(ServerSetting.allowedMethods.begin(), ServerSetting.allowedMethods.end());
+    }
+    if(index == -2)
+    {
+        for (int i = 0; i < (int)ServerSetting.allowedMethods.size(); i++) 
+        {
+            if(Method == ServerSetting.allowedMethods[i])
+            {
+                return 1;
+            }
+        }
+    }
+    else 
+    {
+        for (int j = 0; j < (int)ServerSetting.locations[index].allowedMethods.size(); j++) 
+        {
+            if(Method == ServerSetting.locations[index].allowedMethods[j])
+            {
+                return 1;
+            }
+        }
+    
+    }
+    return 0;
+}
+
+int GetMaxBodySize(t_servers ServerSetting, int index)
+{
+    if(ServerSetting.maxBodySize.empty())
+    {
+        ServerSetting.maxBodySize = "100";
+    }
+    if(index == -2)
+    {
+        return StringToInt(ServerSetting.maxBodySize);
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].maxBodySize.empty())
+        {
+            ServerSetting.locations[index].maxBodySize = ServerSetting.maxBodySize;
+        }
+        return StringToInt(ServerSetting.locations[index].maxBodySize);
+    }
+    return 0;
+}
+
+// std::string err_pages(t_servers ServerSetting, int index)
+// {
+//     return "";
+// }
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -493,62 +666,87 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
+    {
         return "";
+    }
 
     std::string &Uri = uri;
-    if(!LocationIsMatching(ServerSetting, Uri))
+    int index = LocationIsMatching(ServerSetting, Uri);
+    if(index == -1)
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
         return "";
     }
-        
-    if(Method == "GET")
+    if(Request.GetPath() == "/")
     {
-        if(CheckIfResourceExists(Uri) && Uri != "/")
+        Resource = readHtmlPage(index, ServerSetting);
+        if(Resource.empty())
         {
-            int var = checkFileType(Uri);
-            if(var == DIR_TYPE)
+            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+            return "";
+        }
+        Response.SetHTTPStatusCode(HTTP_OK);
+        return Resource;
+    }
+
+    int autoIndex = GetAutoIndex(ServerSetting, index);
+    int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
+    int maxBodySize = GetMaxBodySize(ServerSetting, index);
+    
+    if(Method == "GET" && allowedMethod == 1)
+    {
+        int var = checkFileType(Uri);
+        if(var == DIR_TYPE)
+        {
+            if(autoIndex == 1)
             {
-                if(ServerSetting.autoIndex)
-                {
-                    Resource = OpenDir(Uri);
-                    ListDir(Resource, Uri);// still need to work recurcivly
-                    Response.SetHTTPStatusCode(HTTP_OK);
-                }
-                else
-                    Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-            }
-            else if(var == FILE_TYPE)
-            {
-                Resource = ReadFile(Uri);
+                Resource = OpenDir(Uri);
+                ListDir(Resource, Uri);
                 Response.SetHTTPStatusCode(HTTP_OK);
+                return Resource;
+            }
+            else if(autoIndex == 0)
+            {
+                Resource = readHtmlPage(index, ServerSetting);
+                return Resource;
+            }
+            else
+            {
+                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+                return "";
             }
         }
-        else if(Uri == "/")
+        else if(var == FILE_TYPE)
         {
+            Resource = ReadFile(Uri);
             Response.SetHTTPStatusCode(HTTP_OK);
         }
         else 
         {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+            return "";
         }
-
     }
-    else if(Method == "POST")
+    else if(Method == "POST" && allowedMethod == 1)
     {
-        if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
+        if((int)Request.GetBody().size() > maxBodySize)
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+            return "";
         }
+        Response.SetHTTPStatusCode(HTTP_OK);
     }
-    else if(Method == "DELETE")
+    else if(Method == "DELETE" && allowedMethod == 1)
     {
 
+        Response.SetHTTPStatusCode(HTTP_OK);
         Delete(Request, Response, ServerSetting);
         std::cout << "delete"<<std::endl;
     }
     else 
+    {
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
+    }
     return Resource;
 }
 
