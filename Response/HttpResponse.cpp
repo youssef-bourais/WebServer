@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 23:29:18 by sait-bah         ###   ########.fr       */
+/*   Updated: 2024/07/16 00:21:08 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,8 @@ std::string HttpResponse::GetHttpStatusMessage() const
             return  "Conflict";
         case  HTTP_NO_CONTENT:
             return "No Content";
+        case HTTP_MOVED_PERMANETLY:
+            return "Moved Permanetly";
 
         default:
             return "Unknown";
@@ -652,6 +654,8 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
+
+
 // std::string err_pages(t_servers ServerSetting, int index)
 // {
 //     return "";
@@ -662,6 +666,8 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
     std::string uri = Request.GetPath();
+
+
 
     // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
@@ -688,6 +694,13 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         Response.SetHTTPStatusCode(HTTP_OK);
         return Resource;
     }
+    if(!ServerSetting.locations[index].redirect.empty() && index >= 0)
+    {
+        Response.SetHTTPStatusCode(HTTP_MOVED_PERMANETLY);
+        Response.SetConfigNum(index);
+        return "";
+    }
+
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
@@ -775,7 +788,7 @@ std::string GetDate()
 
 
 
-std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const RequestParsser &Request, t_servers &ServerSetting)
+std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const RequestParsser &Request, t_servers &ServerSetting, int index)
 {
     (void)Request;
     (void)Response;
@@ -783,14 +796,18 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
     std::string key;
     std::string Value;
 
+    if(Response.GetStatusCode() == HTTP_MOVED_PERMANETLY && !ServerSetting.locations[index].redirect.empty())
+    {
+        key = "Location: ";
+        Value = ServerSetting.locations[index].redirect;
+        tmp.push_back(KeyValue(key, Value));
+    }
+
     key = "Server: ";
     Value = ServerSetting.server_names[0];
     tmp.push_back(KeyValue(key, Value));
 
-    key = "Conenection: ";
-    Value = "close";
-    tmp.push_back(KeyValue(key, Value));
-
+    
     key= "Date: ";
     Value = GetDate();
     tmp.push_back(KeyValue(key, Value));
@@ -805,16 +822,25 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
     Value = "GET, POST, DELETE";
     tmp.push_back(KeyValue(key, Value));
 
+    key = "Conenection: ";
+    Value = "close";
+    tmp.push_back(KeyValue(key, Value));
+
     return tmp;
+}
+
+void HttpResponse::SetConfigNum(int index)
+{
+    this->Confignum = index;
 }
 
 HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
+    this->Confignum = 0;
     this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);
-    this->ResponseHeaders = SetResponseHeaders(*this, Request, ServerSetting);
+    this->ResponseHeaders = SetResponseHeaders(*this, Request, ServerSetting, this->Confignum);
 }
-
 
 

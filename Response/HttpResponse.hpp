@@ -42,7 +42,8 @@ enum HTTPStatusCode
     HTTP_NOT_IMPLEMENTED = 501,
     HTTP_FORBIDDEN,
     HTTP_CONFLICT = 409,
-    HTTP_NO_CONTENT = 204
+    HTTP_NO_CONTENT = 204,
+    HTTP_MOVED_PERMANETLY = 300
 };
 
 class HttpResponse
@@ -53,6 +54,7 @@ class HttpResponse
         std::list<KeyValue> ResponseHeaders;
         t_servers ServerSetting;
         RequestParsser Request;
+        int Confignum;
 
     public:
         HttpResponse(const RequestParsser &Request, t_servers &ServerSetting);
@@ -65,6 +67,8 @@ class HttpResponse
         std::string HTTPStatusCodeToString() const;
         std::string GetHttpStatusMessage() const;
         void SetHTTPStatusCode(HTTPStatusCode Code);
+
+        void SetConfigNum(int index);
         
         std::list<KeyValue>::const_iterator GetHeadersBegin() const;
         std::list<KeyValue>::const_iterator GetHeadersEnd() const;
