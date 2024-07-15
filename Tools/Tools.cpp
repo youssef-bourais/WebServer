@@ -163,7 +163,7 @@ bool isDirectory(const std::string& path)
         return S_ISDIR(fileStat.st_mode);
     else
         std::cerr << "Error: " << std::strerror(errno) << std::endl;
-        return false;
+    return false;
 }
 
 std::string removeLast(std::string str) 
@@ -186,7 +186,7 @@ void Delete (RequestParsser Request, HttpResponse &Response, t_servers setting)
     }
     if (isDirectory(rootPath)) 
     {
-        if (!requestPath.empty() && requestPath.back() == '/') 
+        if (!requestPath.empty() && requestPath[requestPath.size() - 1] == '/') 
         {
             if (access(rootPath.c_str(), W_OK) == 0) 
             {

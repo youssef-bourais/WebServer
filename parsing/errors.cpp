@@ -21,6 +21,7 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	names.push_back("upload_path");
 	names.push_back("cgi_path");
 	names.push_back("error_page");
+	names.push_back("redirect");
 	dataItr = data.begin();
 	while (dataItr != data.end())
 	{

@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 02:06:21 by sait-bah         ###   ########.fr       */
+/*   Updated: 2024/07/15 02:47:46 by sait-bah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -372,7 +372,6 @@ std::string rootPath(std::string path, std::string root)
 
     if(root[root.size() - 1] != '/' && path[0] != '/')
     {
-    
         Path = root.substr(2) + "/" + path;
     }
     else 
@@ -385,33 +384,101 @@ std::string rootPath(std::string path, std::string root)
 
 int LocationIsMatching(t_servers ServerSetting, std::string &Path)
 {
+    std::string rootpath = "./var/www/html/";
+    if(ServerSetting.root.empty())
+    {
+        ServerSetting.root = rootpath;
+    }
+    else 
+    {
+        rootpath = ServerSetting.root;
+    }
     std::string realpath;
     
-    realpath = rootPath(Path, ServerSetting.root);
-    //
-    
-
+    realpath = rootPath(Path, rootpath);
     
     std::string tmp = Path;
     
     if(tmp.size() != 1)
     {
-        tmp = tmp.substr(0, tmp.find("/"));
+        tmp = tmp.substr(0, tmp.find("/") );
     }
     
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
-    
-        std::cout << "location : "<< i<< " "<<ServerSetting.locations[i].location<<std::endl;
-        if(ServerSetting.locations[i].location.substr(2) == tmp)
+    // 
+        if(ServerSetting.locations[i].root.empty())
         {
-            // Path = ;
-            return 1;
+            ServerSetting.locations[i].root = rootpath;
+        }
+         std::string tmp2;
+        if(ServerSetting.locations[i].location.size() != 1)
+            tmp2 = ServerSetting.locations[i].location.substr(2);
+        else
+            tmp2 = ServerSetting.locations[i].location;
+
+        if(tmp2[tmp2.size() - 1] == '/' && tmp2.size() != 1)
+        {
+            tmp2 = tmp2.substr(0, tmp2.size() - 1);
+        }
+         std::cout << "location: "<<tmp2<<std::endl;
+         std::cout << "path: "<< tmp<<std::endl;
+        int flage = 0;
+        if(tmp.find(".") != std::string::npos && tmp2 == "/")
+        {
+            flage = 1;
+        }
+        
+        if(tmp2 == tmp || flage)
+        {
+            std::string locationRoot = ServerSetting.locations[i].root;
+            if(locationRoot[locationRoot.size() - 1] != '/')
+            {
+                locationRoot += "/";
+            }
+            if(!ServerSetting.locations[i].root.empty())
+            {
+                std::string locationr;
+                if(locationRoot != "/")
+                {
+                    locationr = locationRoot.substr(2);
+                }
+                else
+                    locationr = "";
+                
+                int Index = Path.find("/");
+                
+                Path = locationr + Path.substr(Index + 1);
+                return 1;
+            }
+            else
+            {
+                if(!ServerSetting.root.empty())
+                {
+                    if(ServerSetting.root == "/")
+                    {
+
+                    }
+                    else 
+                    {
+                        std::string tmp = ServerSetting.root.substr(2);
+                        int Index = Path.find("/");
+                        Path = tmp + Path.substr(Index + 1);
+                        return 1;
+                    }
+                }
+                else 
+                {
+
+                }
+            }
         }
     }
    
     if(!CheckIfResourceExists(realpath))
+    {
         return 0;
+    }
 
     Path = realpath;
     return 1;
@@ -545,7 +612,6 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
 
 HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
 {
-    std::cout << Request.GetBody()<<std::endl;
     this->Request = Request;
     this->ServerSetting = ServerSetting;
     this->ResponseBody = GetResource(Request, *this, ServerSetting);

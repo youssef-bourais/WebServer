@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 22:20:33 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/14 04:17:02 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,10 +216,10 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
         }
     }
 
-    struct timeval      timeout;
-
-    timeout.tv_sec  = 1;
-    timeout.tv_usec = 0;
+    /* struct timeval      timeout; */
+    /**/
+    /* timeout.tv_sec  = 1; */
+    /* timeout.tv_usec = 0; */
 
     std::map<int , RequestParsser> buffers;
     std::map<int, std::string> ResponseMsg;
