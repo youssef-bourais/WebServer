@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 22:21:28 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 23:27:30 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -562,7 +562,6 @@ std::string readHtmlPage(int index, t_servers ServerSetting)
     return content;
 }
 
-
  int GetAutoIndex(t_servers ServerSetting, int index)
  {
     if(index == -2)
@@ -606,10 +605,7 @@ int IsMethodAllowed(t_servers ServerSetting, int index, std::string Method)
 {
     if(ServerSetting.locations[index].allowedMethods.size() > 3 || ServerSetting.locations[index].allowedMethods.size() == 0)
     {
-        // ServerSetting.locations[index].allowedMethods.clear();
-        
         ServerSetting.locations[index].allowedMethods.assign(ServerSetting.allowedMethods.begin(), ServerSetting.allowedMethods.end());
-        // ServerSetting.locations[index].allowedMethods = ServerSetting.allowedMethods;
     }
     if(index == -2)
     {
@@ -620,7 +616,6 @@ int IsMethodAllowed(t_servers ServerSetting, int index, std::string Method)
                 return 1;
             }
         }
-
     }
     else 
     {
@@ -656,6 +651,11 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     }
     return 0;
 }
+
+// std::string err_pages(t_servers ServerSetting, int index)
+// {
+//     return "";
+// }
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -729,7 +729,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
-        if(Request.GetBody().size() > maxBodySize)
+        if((int)Request.GetBody().size() > maxBodySize)
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
             return "";
