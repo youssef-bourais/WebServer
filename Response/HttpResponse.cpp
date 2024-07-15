@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 20:05:56 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 22:01:07 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,6 +272,7 @@ std::string generateListItems(const std::string &fileAndDirNames, const std::str
 std::string InitPage(const std::string &List, const std::string &Uri)
 {
     std::string listContent = generateListItems(List, Uri);
+    std::cout << Uri<<std::endl;
 
     std::string htmlContent =
     "<!DOCTYPE html>\n"
@@ -355,7 +356,7 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
         Response.SetHTTPStatusCode(HTTP_NOT_IMPLEMENTED);
         return 0;
     }
-    if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST")
+    if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST" && !Request.GetBody().empty())
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
         return 0;
@@ -566,7 +567,6 @@ std::string readHtmlPage(int index, t_servers ServerSetting)
  {
     if(index == -2)
     {
-        std::cout << "autoIndex: "<<ServerSetting.autoIndex<<std::endl;
         if(ServerSetting.index.size() == 0 && ServerSetting.autoIndex == true)
         {
             return 1; // dispaly dir
@@ -592,7 +592,7 @@ std::string readHtmlPage(int index, t_servers ServerSetting)
         }
         else 
         {
-            if()
+            if(ServerSetting.locations[index].index.empty())
             {
 
             }
@@ -602,6 +602,39 @@ std::string readHtmlPage(int index, t_servers ServerSetting)
      return 1;
  }
 
+int IsMethodAllowed(t_servers ServerSetting, int index, std::string Method)
+{
+    if(ServerSetting.locations[index].allowedMethods.size() > 3 || ServerSetting.locations[index].allowedMethods.size() == 0)
+    {
+        // ServerSetting.locations[index].allowedMethods.clear();
+        
+        ServerSetting.locations[index].allowedMethods.assign(ServerSetting.allowedMethods.begin(), ServerSetting.allowedMethods.end());
+        // ServerSetting.locations[index].allowedMethods = ServerSetting.allowedMethods;
+    }
+    if(index == -2)
+    {
+        for (int i = 0; i < (int)ServerSetting.allowedMethods.size(); i++) 
+        {
+            if(Method == ServerSetting.allowedMethods[i])
+            {
+                return 1;
+            }
+        }
+
+    }
+    else 
+    {
+        for (int j = 0; j < (int)ServerSetting.locations[index].allowedMethods.size(); j++) 
+        {
+            if(Method == ServerSetting.locations[index].allowedMethods[j])
+            {
+                return 1;
+            }
+        }
+    
+    }
+    return 0;
+}
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -612,7 +645,9 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response))
+    {
         return "";
+    }
 
     std::string &Uri = uri;
     int index = LocationIsMatching(ServerSetting, Uri);
@@ -632,20 +667,23 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         Response.SetHTTPStatusCode(HTTP_OK);
         return Resource;
     }
+
+    int autoIndex = GetAutoIndex(ServerSetting, index);
+    int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
     
-    if(Method == "GET")
+    if(Method == "GET" && allowedMethod == 1)
     {
         int var = checkFileType(Uri);
         if(var == DIR_TYPE)
         {
-            if(GetAutoIndex(ServerSetting, index) == 1)
+            if(autoIndex == 1)
             {
                 Resource = OpenDir(Uri);
                 ListDir(Resource, Uri);
                 Response.SetHTTPStatusCode(HTTP_OK);
                 return Resource;
             }
-            else if(GetAutoIndex(ServerSetting, index) == 0)
+            else if(autoIndex == 0)
             {
                 Resource = readHtmlPage(index, ServerSetting);
                 return Resource;
@@ -667,22 +705,25 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
             return "";
         }
     }
-
-    else if(Method == "POST")
+    else if(Method == "POST" && allowedMethod == 1)
     {
         if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
         }
+        Response.SetHTTPStatusCode(HTTP_OK);
     }
-    else if(Method == "DELETE")
+    else if(Method == "DELETE" && allowedMethod == 1)
     {
 
+        Response.SetHTTPStatusCode(HTTP_OK);
         Delete(Request, Response, ServerSetting);
         std::cout << "delete"<<std::endl;
     }
     else 
+    {
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
+    }
     return Resource;
 }
 
