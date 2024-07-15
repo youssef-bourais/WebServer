@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 00:21:08 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 00:51:39 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -654,12 +654,12 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
-
-
-// std::string err_pages(t_servers ServerSetting, int index)
-// {
-//     return "";
-// }
+std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
+{
+    std::cout << ServerSetting.locations[index].errPage[0]<<std::endl;
+    // std::cout << ServerSetting.jjjll<<std::endl;
+    return "";
+}
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -700,7 +700,6 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         Response.SetConfigNum(index);
         return "";
     }
-
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
