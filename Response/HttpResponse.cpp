@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 22:01:07 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 22:21:28 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -636,6 +636,27 @@ int IsMethodAllowed(t_servers ServerSetting, int index, std::string Method)
     return 0;
 }
 
+int GetMaxBodySize(t_servers ServerSetting, int index)
+{
+    if(ServerSetting.maxBodySize.empty())
+    {
+        ServerSetting.maxBodySize = "100";
+    }
+    if(index == -2)
+    {
+        return StringToInt(ServerSetting.maxBodySize);
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].maxBodySize.empty())
+        {
+            ServerSetting.locations[index].maxBodySize = ServerSetting.maxBodySize;
+        }
+        return StringToInt(ServerSetting.locations[index].maxBodySize);
+    }
+    return 0;
+}
+
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
     std::string Resource;
@@ -670,6 +691,7 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
+    int maxBodySize = GetMaxBodySize(ServerSetting, index);
     
     if(Method == "GET" && allowedMethod == 1)
     {
@@ -707,9 +729,10 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
-        if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
+        if(Request.GetBody().size() > maxBodySize)
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+            return "";
         }
         Response.SetHTTPStatusCode(HTTP_OK);
     }
