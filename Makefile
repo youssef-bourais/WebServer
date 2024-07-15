@@ -13,7 +13,7 @@ TOOLS_FILES = ./Tools/Tools.cpp
 
 # Header files
 ERROR_HEADERS = ./errors/Errors.hpp
-PARSING_HEADERS = ./parsing/Parsing.hpp ./parsing/FileReader.hpp ./parsing/parse.hpp ./parsing/parsingStruct.hpp
+PARSING_HEADERS = ./parsing/Parsing.hpp ./parsing/FileReader.hpp ./parsing/parse.hpp ./parsing/parsingStruct.hpp ./Post/post.cpp
 HEADERS = ./Request/HttpMessage.hpp ./Request/HttpRequest.hpp ./Response/HttpResponse.hpp ./Server/HttpServer.hpp ./Tools/Tools.hpp ./Request/RequestParsser.hpp
 
 # Compiler and flags

@@ -59,6 +59,13 @@ class Parsing : private FileReader {
 		std::string removeChars(std::string str, std::string toRemove);
 		int findWordPos(std::string str, std::string word);
 		std::string getServer(void);
+
+		void checkingForLoactionPath(std::string path, size_t counter, std::string porp);
+		void checkForRootDirectory (std::vector<std::string> path, size_t counter);
+		void checkErrorPage(std::vector<std::string> path, size_t counter);
+		void checkAutoIndex(std::vector<std::string> autoIndex, size_t counter);
+		
+
 		template <typename T>
 		bool checkDuplicatedValues(std::vector<T> data) {
 			typename std::vector<T>::iterator itr;

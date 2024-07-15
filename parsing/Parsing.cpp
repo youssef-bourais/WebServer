@@ -36,6 +36,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 		server.cgiPath = getRule(*itr, "cgi_path").size() > 0 ? getRule(*itr, "cgi_path")[0] : "";
 		server.uploadPath = getRule(*itr, "upload_path").size() > 0 ? getRule(*itr, "upload_path")[0] : "";
 		server.autoIndex = (getRule(*itr, "autoIndex").size() > 0 ? getRule(*itr, "autoIndex")[0] : "") == "on" ? true : false;
+		server.redirect = getRule(*itr, "redirect").size() > 0 ? getRule(*itr, "redirect")[0] : "";
 		server.location = "";
 		//------------------------------------------------------
 		locationsItr = itr->locations.begin();
@@ -59,6 +60,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 			loc.cgiPath = getLocationRule(*itr, *locationsItr, "cgi_path").size() > 0 ? getLocationRule(*itr, *locationsItr, "cgi_path")[0] : "";
 			loc.uploadPath = getLocationRule(*itr, *locationsItr, "upload_path").size() > 0 ? getLocationRule(*itr, *locationsItr, "upload_path")[0] : "";
 			loc.autoIndex = (getLocationRule(*itr, *locationsItr, "autoIndex").size() > 0 ? getLocationRule(*itr, *locationsItr, "autoIndex")[0] : "") == "on" ? true : false;
+			loc.redirect = (getLocationRule(*itr, *locationsItr, "redirect").size() > 0 ? getLocationRule(*itr, *locationsItr, "redirect")[0] : "");
 			loc.location = *locationsItr;
 			server.locations.push_back(loc);
 			locationsItr++;
@@ -66,6 +68,8 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 		this->servers.push_back(server);
 		itr++;
 	}
+
+	std::cout << "------------> " << this->servers[0].locations[0].redirect << std::endl;
 }
 
 Parsing::~Parsing(void)
@@ -504,7 +508,6 @@ std::vector<std::string> Parsing::getLocationRule(t_data server, std::string loc
 			*itr = itr->erase(0, itr->find_first_of(" \t\n"));
 			*itr = ft_trim(*itr);
 			 res.push_back(itr->substr(0, itr->find_first_of(" \t\n")));
-
 			return res;
 		}
 		*itr++;

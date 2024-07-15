@@ -37,6 +37,7 @@ typedef struct t_servers
 	std::string uploadPath;
 	bool autoIndex;
 	std::string location;
+	std::string redirect;
 	std::vector<t_servers> locations;
 
 } t_servers;
@@ -45,5 +46,8 @@ typedef struct t_servers
 typedef struct t_locations {
 	
 }t_locations;
+
+int post(t_servers server);
+
 
 #endif
