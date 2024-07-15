@@ -6,12 +6,13 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 06:50:25 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 20:05:56 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "../Tools/Tools.hpp"
+#include <atomic>
 #include <cstdio>
 #include <string>
 #include <sys/syslimits.h>
@@ -422,8 +423,6 @@ int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
         {
             tmp2 = tmp2.substr(0, tmp2.size() - 1);
         }
-         std::cout << "location: "<<tmp2<<std::endl;
-         std::cout << "path: "<< tmp<<std::endl;
         int flage = 0;
         if(tmp.find(".") != std::string::npos && tmp2 == "/")
         {
@@ -458,7 +457,6 @@ int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
     }
 
     Path = realpath;
-    std::cout << "real path "<< Path<<std::endl;
     return -2;
 }
 
@@ -563,13 +561,46 @@ std::string readHtmlPage(int index, t_servers ServerSetting)
     return content;
 }
 
-//
-// bool GetAutoIndex(t_servers ServerSetting, int index)
-// {
-//
-//     return true;
-// }
 
+ int GetAutoIndex(t_servers ServerSetting, int index)
+ {
+    if(index == -2)
+    {
+        std::cout << "autoIndex: "<<ServerSetting.autoIndex<<std::endl;
+        if(ServerSetting.index.size() == 0 && ServerSetting.autoIndex == true)
+        {
+            return 1; // dispaly dir
+        }
+        else if(ServerSetting.index.size() != 0) 
+        {
+            return 0; // read index page
+        }
+        else 
+        {
+            return -1; // Forbidden
+        }
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].index.size() == 0 && ServerSetting.locations[index].autoIndex == true)
+        {
+            return 1;
+        }
+        else if(ServerSetting.locations[index].index.size() != 0) 
+        {
+            return 0;
+        }
+        else 
+        {
+            if()
+            {
+
+            }
+            return -1;
+        }
+    }
+     return 1;
+ }
 
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
@@ -602,66 +633,19 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         return Resource;
     }
     
-    bool AutoIndex = false;
-    bool indexpage = true;
-    
-    std::string IndexPage;
-    // bool autoindex;
-
-    
-    // if(index == -2)
-    // {
-    //     // std::string File
-    //     if(ServerSetting.index.empty() && ServerSetting.autoIndex)
-    //     {
-    //         AutoIndex = true;
-    //         indexpage = false;
-    //     }
-    //     else if(!ServerSetting.index.empty()) 
-    //     {
-    //         AutoIndex = false;
-    //         indexpage = true;
-    //     }
-    //     else if(ServerSetting.index.empty() && !ServerSetting.autoIndex) 
-    //     {
-    //         AutoIndex = false;
-    //         indexpage = false;
-    //     }
-    //
-    // }
-    // else 
-    // {
-    //     if(ServerSetting.locations[index].index.empty() && ServerSetting.locations[index].autoIndex)
-    //     {
-    //         AutoIndex = true;
-    //         indexpage = false;
-    //     }
-    //     else if(!ServerSetting.locations[index].index.empty()) 
-    //     {
-    //         AutoIndex = false;
-    //         indexpage = true;
-    //     }
-    //     else if(ServerSetting.locations[index].index.empty() && !ServerSetting.locations[index].autoIndex) 
-    //     {
-    //         AutoIndex = false;
-    //         indexpage = false;
-    //     }
-    // }
-        
     if(Method == "GET")
     {
         int var = checkFileType(Uri);
         if(var == DIR_TYPE)
         {
-            if(!index && AutoIndex)
+            if(GetAutoIndex(ServerSetting, index) == 1)
             {
-                exit(0);
                 Resource = OpenDir(Uri);
                 ListDir(Resource, Uri);
                 Response.SetHTTPStatusCode(HTTP_OK);
                 return Resource;
             }
-            else if(indexpage)
+            else if(GetAutoIndex(ServerSetting, index) == 0)
             {
                 Resource = readHtmlPage(index, ServerSetting);
                 return Resource;
@@ -676,6 +660,11 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         {
             Resource = ReadFile(Uri);
             Response.SetHTTPStatusCode(HTTP_OK);
+        }
+        else 
+        {
+            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+            return "";
         }
     }
 
