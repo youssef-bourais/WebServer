@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 18:36:45 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 03:00:01 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "../Tools/Tools.hpp"
 #include <cstdio>
 #include <string>
+#include <sys/syslimits.h>
 
 std::string GetDayName(int n) 
 {
@@ -382,7 +383,8 @@ std::string rootPath(std::string path, std::string root)
 }
 
 
-int LocationIsMatching(t_servers ServerSetting, std::string &Path)
+
+int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
 {
     std::string rootpath = "./var/www/html/";
     if(ServerSetting.root.empty())
@@ -406,7 +408,6 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
     
     for (int i = 0;i < (int)ServerSetting.locations.size();i++) 
     {
-    // 
         if(ServerSetting.locations[i].root.empty())
         {
             ServerSetting.locations[i].root = rootpath;
@@ -436,8 +437,6 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
             {
                 locationRoot += "/";
             }
-            if(!ServerSetting.locations[i].root.empty())
-            {
                 std::string locationr;
                 if(locationRoot != "/")
                 {
@@ -449,39 +448,115 @@ int LocationIsMatching(t_servers ServerSetting, std::string &Path)
                 int Index = Path.find("/");
                 
                 Path = locationr + Path.substr(Index + 1);
-                return 1;
-            }
-            else
-            {
-                if(!ServerSetting.root.empty())
-                {
-                    if(ServerSetting.root == "/")
-                    {
-
-                    }
-                    else 
-                    {
-                        std::string tmp = ServerSetting.root.substr(2);
-                        int Index = Path.find("/");
-                        Path = tmp + Path.substr(Index + 1);
-                        return 1;
-                    }
-                }
-                else 
-                {
-
-                }
-            }
+                return i;
         }
     }
    
     if(!CheckIfResourceExists(realpath))
     {
-        return 0;
+        return -1;
     }
 
     Path = realpath;
-    return 1;
+    std::cout << "real path "<< Path<<std::endl;
+    return -2;
+}
+
+int File(std::string Path)
+{
+    struct stat s;
+    std::string tmp = "./" + Path;
+    if(!stat(tmp.c_str(),&s))
+    {
+    
+        std::cout << "size using stat: "<<s.st_size<<std::endl;
+        if(s.st_mode & S_IFDIR)
+            return 1;
+        else if(s.st_mode & S_IFREG)
+            return 0;
+    }
+    return -1;
+}
+
+std::string readHtmlPage(int index, t_servers &ServerSetting) 
+{
+    if(ServerSetting.index.size() == 0)
+    {
+        ServerSetting.index.push_back("./HtmlPages/index.html");
+    }
+
+    std::cout << index<<std::endl;
+    std::string filePath;
+    if(index == -2)
+    {
+        int i = 0;
+        while (i < (int)ServerSetting.index.size()) 
+        {
+            std::cout << "index root: "<<ServerSetting.index[i]<<std::endl;
+            if(CheckIfResourceExists(ServerSetting.index[i]))
+            {
+                filePath = ServerSetting.index[i];
+            }
+            else 
+            {
+                return "";
+            }
+            i++;
+        }
+    }
+    else 
+    {
+        std::string tmp;
+        if(ServerSetting.locations[index].index.empty())
+        {
+            for (int i = 0;i < (int)ServerSetting.index.size(); i++) 
+            {
+                if(CheckIfResourceExists(ServerSetting.index[i]))
+                {
+                    filePath = ServerSetting.index[i];
+                    break;
+                }
+                else 
+                {
+                    return "";
+                }
+            }
+        }
+        else 
+        {
+            for (int i = 0;i < (int)ServerSetting.locations[index].index.size();i++) 
+            {
+                if(CheckIfResourceExists(ServerSetting.locations[index].index[i]))
+                {
+                    filePath = ServerSetting.locations[index].index[i];
+                    break;
+                }
+                else 
+                {
+                    return "";
+                }
+            }
+        }
+    }
+    
+    std::ifstream file(filePath.c_str());
+    if (!file.is_open()) 
+    {
+        return "";
+    }
+    std::string content;
+    std::string line;
+    while (std::getline(file, line)) 
+    {
+        content += line;
+        if (!file.eof()) 
+        {
+            content += "\n";
+        }
+    }
+
+    file.close();
+    return content;
 }
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
@@ -496,11 +571,27 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         return "";
 
     std::string &Uri = uri;
-    if(!LocationIsMatching(ServerSetting, Uri))
+    int index = LocationIsMatching(ServerSetting, Uri);
+    if(index == -1)
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
         return "";
     }
+    std::cout << "haha: "<<Request.GetPath()<<std::endl;
+    if(Request.GetPath() == "/")
+    {
+        Resource = readHtmlPage(index, ServerSetting);
+        if(Resource.empty())
+        {
+            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+            return "";
+        }
+        Response.SetHTTPStatusCode(HTTP_OK);
+        return Resource;
+    }
+    
+    std::cout << "uri: "<<Request.GetPath()<<std::endl;
+    std::cout << "config: "<< index<<std::endl;
         
     if(Method == "GET")
     {
