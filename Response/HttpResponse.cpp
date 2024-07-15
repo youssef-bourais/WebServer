@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/15 03:00:01 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/15 06:50:25 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -478,21 +478,42 @@ int File(std::string Path)
     return -1;
 }
 
-std::string readHtmlPage(int index, t_servers &ServerSetting) 
+std::string HtmlToSring(std::string filePath)
+{
+
+    std::ifstream file(filePath.c_str());
+    if (!file.is_open()) 
+    {
+        return "";
+    }
+    std::string content;
+    std::string line;
+    while (std::getline(file, line)) 
+    {
+        content += line;
+        if (!file.eof()) 
+        {
+            content += "\n";
+        }
+    }
+
+    file.close();
+    return content;
+}
+
+std::string readHtmlPage(int index, t_servers ServerSetting) 
 {
     if(ServerSetting.index.size() == 0)
     {
         ServerSetting.index.push_back("./HtmlPages/index.html");
     }
 
-    std::cout << index<<std::endl;
     std::string filePath;
     if(index == -2)
     {
         int i = 0;
         while (i < (int)ServerSetting.index.size()) 
         {
-            std::cout << "index root: "<<ServerSetting.index[i]<<std::endl;
             if(CheckIfResourceExists(ServerSetting.index[i]))
             {
                 filePath = ServerSetting.index[i];
@@ -538,26 +559,18 @@ std::string readHtmlPage(int index, t_servers &ServerSetting)
             }
         }
     }
-    
-    std::ifstream file(filePath.c_str());
-    if (!file.is_open()) 
-    {
-        return "";
-    }
-    std::string content;
-    std::string line;
-    while (std::getline(file, line)) 
-    {
-        content += line;
-        if (!file.eof()) 
-        {
-            content += "\n";
-        }
-    }
-
-    file.close();
+    std::string content = HtmlToSring(filePath);
     return content;
 }
+
+//
+// bool GetAutoIndex(t_servers ServerSetting, int index)
+// {
+//
+//     return true;
+// }
+
+
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -577,7 +590,6 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
         return "";
     }
-    std::cout << "haha: "<<Request.GetPath()<<std::endl;
     if(Request.GetPath() == "/")
     {
         Resource = readHtmlPage(index, ServerSetting);
@@ -590,41 +602,83 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         return Resource;
     }
     
-    std::cout << "uri: "<<Request.GetPath()<<std::endl;
-    std::cout << "config: "<< index<<std::endl;
+    bool AutoIndex = false;
+    bool indexpage = true;
+    
+    std::string IndexPage;
+    // bool autoindex;
+
+    
+    // if(index == -2)
+    // {
+    //     // std::string File
+    //     if(ServerSetting.index.empty() && ServerSetting.autoIndex)
+    //     {
+    //         AutoIndex = true;
+    //         indexpage = false;
+    //     }
+    //     else if(!ServerSetting.index.empty()) 
+    //     {
+    //         AutoIndex = false;
+    //         indexpage = true;
+    //     }
+    //     else if(ServerSetting.index.empty() && !ServerSetting.autoIndex) 
+    //     {
+    //         AutoIndex = false;
+    //         indexpage = false;
+    //     }
+    //
+    // }
+    // else 
+    // {
+    //     if(ServerSetting.locations[index].index.empty() && ServerSetting.locations[index].autoIndex)
+    //     {
+    //         AutoIndex = true;
+    //         indexpage = false;
+    //     }
+    //     else if(!ServerSetting.locations[index].index.empty()) 
+    //     {
+    //         AutoIndex = false;
+    //         indexpage = true;
+    //     }
+    //     else if(ServerSetting.locations[index].index.empty() && !ServerSetting.locations[index].autoIndex) 
+    //     {
+    //         AutoIndex = false;
+    //         indexpage = false;
+    //     }
+    // }
         
     if(Method == "GET")
     {
-        if(CheckIfResourceExists(Uri) && Uri != "/")
+        int var = checkFileType(Uri);
+        if(var == DIR_TYPE)
         {
-            int var = checkFileType(Uri);
-            if(var == DIR_TYPE)
+            if(!index && AutoIndex)
             {
-                if(ServerSetting.autoIndex)
-                {
-                    Resource = OpenDir(Uri);
-                    ListDir(Resource, Uri);// still need to work recurcivly
-                    Response.SetHTTPStatusCode(HTTP_OK);
-                }
-                else
-                    Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-            }
-            else if(var == FILE_TYPE)
-            {
-                Resource = ReadFile(Uri);
+                exit(0);
+                Resource = OpenDir(Uri);
+                ListDir(Resource, Uri);
                 Response.SetHTTPStatusCode(HTTP_OK);
+                return Resource;
+            }
+            else if(indexpage)
+            {
+                Resource = readHtmlPage(index, ServerSetting);
+                return Resource;
+            }
+            else
+            {
+                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+                return "";
             }
         }
-        else if(Uri == "/")
+        else if(var == FILE_TYPE)
         {
+            Resource = ReadFile(Uri);
             Response.SetHTTPStatusCode(HTTP_OK);
         }
-        else 
-        {
-            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        }
-
     }
+
     else if(Method == "POST")
     {
         if(StringToInt(ServerSetting.maxBodySize) < (int)Request.GetBody().size() )
