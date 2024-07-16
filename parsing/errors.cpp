@@ -269,7 +269,11 @@ void Parsing::checkAutoIndex(std::vector<std::string> autoIndex, size_t counter)
 	}
 }
 
-
+void checkVarDirector(void) {
+	if (access ("./var/html/www", F_OK) != 0){
+		throw std::runtime_error("\x1b[31mError: var/html/www not found.");
+	}
+}
 
 
 void Parsing::checkForErrors(std::vector<t_data> data)
@@ -337,4 +341,5 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		counter++;
 		*itr++;
 	}
+	checkVarDirector();
 }
