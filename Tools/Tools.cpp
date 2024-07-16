@@ -1,6 +1,7 @@
 
 
 #include "Tools.hpp"
+#include <atomic>
 
 int checkFileType(const std::string &path) 
 {
@@ -174,38 +175,226 @@ std::string removeLast(std::string str)
     }
     return str;
 }
-
-void Delete (RequestParsser Request, HttpResponse &Response, t_servers setting)
+ 
+std::string HtmlToSring(std::string filePath)
 {
-    std::string requestPath = Request.GetPath();
-    std::string rootPath = "./" + setting.location + requestPath;  
-    if (access(rootPath.c_str(), F_OK) == -1) // check if file exists
+
+    std::ifstream file(filePath.c_str());
+    if (!file.is_open()) 
     {
-        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        return;
+        return "";
     }
-    if (isDirectory(rootPath)) 
+    std::string content;
+    std::string line;
+    while (std::getline(file, line)) 
     {
-        if (!requestPath.empty() && requestPath[requestPath.size() - 1] == '/') 
+        content += line;
+        if (!file.eof()) 
         {
-            if (access(rootPath.c_str(), W_OK) == 0) 
-            {
-                deleteDir(removeLast(rootPath)); 
-                std::remove(rootPath.c_str());
-                Response.SetHTTPStatusCode(HTTP_NO_CONTENT);
-            }
-            else 
-                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+            content += "\n";
         }
-        else 
-            Response.SetHTTPStatusCode(HTTP_CONFLICT);
+    }
+
+    file.close();
+    return content;
+}  
+
+std::string GetHttpStatusMessage(HTTPStatusCode StatusCode)
+{ 
+    switch(StatusCode) 
+    {
+        case HTTP_OK:
+            return "OK";
+        case HTTP_CREATED:
+            return "Created";
+        case HTTP_BAD_REQUEST:
+            return "Bad Request";
+        case HTTP_NOT_FOUND:
+            return "Not Found";
+        case HTTP_METHOD_NOT_ALLOWED:
+            return "Method Not Allowed";
+        case HTTP_INTERNAL_SERVER_ERROR:
+            return "Internal Server Error";
+        case HTTP_URI_TOO_LONG:
+            return "Uri Too Long";
+        case HTTP_ENTITY_TOO_LARGE:
+            return "Entity Too Large";
+        case HTTP_NOT_IMPLEMENTED:
+            return "Not Implemented";
+        case HTTP_FORBIDDEN:
+            return "Forbidden";
+        case HTTP_CONFLICT:
+            return  "Conflict";
+        case  HTTP_NO_CONTENT:
+            return "No Content";
+        case HTTP_MOVED_PERMANETLY:
+            return "Moved Permanetly";
+
+        default:
+            return "Unknown";
+    }
+}
+
+
+std::string ModifyHtmlPage(std::string &htmlPage, HTTPStatusCode statusCode, std::string Path) 
+{
+    std::string modifiedPage = htmlPage;
+    std::string statusCodeStr;
+    std::ostringstream oss;
+    oss << statusCode;
+    statusCodeStr = oss.str();
+    std::string statusMessage = GetHttpStatusMessage(statusCode);
+
+    std::string statusCodePlaceholder = "<span class=\"status-code\">number</span>";
+    
+    if(Path == "./HtmlPages/notfound.html")
+    {
+        size_t startPos = modifiedPage.find(statusCodePlaceholder);
+        if (startPos != std::string::npos) 
+        {
+            modifiedPage.replace(startPos, statusCodePlaceholder.length(), "<span class=\"status-code\">" + statusCodeStr + "</span>");
+        }
+
+        std::string statusMessagePlaceholder = "<p>string.</p>";
+        
+        startPos = modifiedPage.find(statusMessagePlaceholder);
+        if (startPos != std::string::npos) 
+        {
+            modifiedPage.replace(startPos, statusMessagePlaceholder.length(), "<p>" + statusMessage + ".</p>");
+        }
+    }
+    return modifiedPage;
+}
+
+std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
+{
+
+    std::string errPage = "./HtmlPages/notfound.html";
+    std::string tmp;
+    if(index == -2)
+    {
+        if(ServerSetting.errPage.empty())
+        {
+            ServerSetting.errPage = errPage;
+        }
     }
     else 
     {
-        if (std::remove(rootPath.c_str()) != 0) // remove the file
+        if(ServerSetting.locations[index].errPage.empty())
+        {
+            if(ServerSetting.errPage.empty())
+            {
+                ServerSetting.locations[index].errPage = errPage;
+            }
+            else 
+            {
+                ServerSetting.locations[index].errPage = ServerSetting.errPage;
+            }
+        }
+    
+    }
+    if(index == -2)
+    {
+        tmp = HtmlToSring(ServerSetting.errPage);
+        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
+    }
+    else 
+    {
+        tmp = HtmlToSring(ServerSetting.locations[index].errPage);
+        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
+    }
+    return tmp;
+}
+ 
+
+
+std::string Delete (RequestParsser &Request, HttpResponse &Response, t_servers &setting, int index, std::string Uri)
+{
+    std::string errPages;
+    
+    if (access(Uri.c_str(), F_OK) == -1)
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+        
+        errPages = err_pages(setting, index, HTTP_NOT_FOUND);
+        return errPages;
+    }
+    if (isDirectory(Uri)) 
+    {         
+        if (!Uri.empty() && Request.GetFlage() == true) 
+        {
+            if (access(Uri.c_str(), W_OK) == 0) 
+            {
+                deleteDir(Uri); 
+                std::remove(Uri.c_str());
+                Response.SetHTTPStatusCode(HTTP_NO_CONTENT);
+                
+                return "";
+            }
+            else 
+            {        
+                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+                errPages = err_pages(setting, index, HTTP_FORBIDDEN);
+                return errPages;            
+            }
+        }
+        else 
+        {
+            Response.SetHTTPStatusCode(HTTP_CONFLICT);
+            errPages = err_pages(setting, index, HTTP_CONFLICT); 
+            return errPages;
+        }
+        
+    }
+    else 
+    {
+        if (std::remove(Uri.c_str()) != 0)
+        {
             Response.SetHTTPStatusCode(HTTP_INTERNAL_SERVER_ERROR);
+            errPages = err_pages(setting, index, HTTP_INTERNAL_SERVER_ERROR); 
+            return errPages;        
+        }
         else
+        {
             Response.SetHTTPStatusCode(HTTP_NO_CONTENT);
+            errPages = err_pages(setting, index, HTTP_NO_CONTENT); 
+            return errPages;        
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -53,11 +53,11 @@ class HttpResponse
         std::string ResponseBody;
         std::list<KeyValue> ResponseHeaders;
         t_servers ServerSetting;
-        RequestParsser Request;
+        RequestParsser &Request;
         int Confignum;
 
     public:
-        HttpResponse(const RequestParsser &Request, t_servers &ServerSetting);
+        HttpResponse(RequestParsser &Request, t_servers &ServerSetting);
         ~HttpResponse();
         HttpResponse &operator=(HttpResponse const &s);
         HttpResponse(HttpResponse const &src);

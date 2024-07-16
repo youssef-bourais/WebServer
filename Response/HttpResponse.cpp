@@ -6,13 +6,14 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 00:51:39 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 06:53:09 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "../Tools/Tools.hpp"
 #include <atomic>
+#include <cerrno>
 #include <cstdio>
 #include <string>
 #include <sys/syslimits.h>
@@ -109,6 +110,7 @@ std::string HttpResponse::GetHttpStatusMessage() const
     }
 }
 
+
 HttpResponse::~HttpResponse()
 {
 }
@@ -121,7 +123,7 @@ HttpResponse &HttpResponse::operator=(const HttpResponse &s)
     return *this;
 }
 
-HttpResponse::HttpResponse(const HttpResponse& copy) 
+HttpResponse::HttpResponse(const HttpResponse& copy): Request(copy.Request) 
 {
     *this = copy;
 }
@@ -270,7 +272,6 @@ std::string generateListItems(const std::string &fileAndDirNames, const std::str
     return Items;
 }
 
-
 std::string InitPage(const std::string &List, const std::string &Uri)
 {
     std::string listContent = generateListItems(List, Uri);
@@ -338,7 +339,7 @@ bool hasDisallowedChars(const std::string& uri)
 }
 
 
-int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
+int IsRequestGood(const RequestParsser &Request, HttpResponse &Response, HTTPStatusCode &code)
 {
 
     std::string Uri = Request.GetPath();
@@ -346,21 +347,25 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
     if(hasDisallowedChars(Uri))
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        code = HTTP_BAD_REQUEST;
         return 0;
     }
     if(Uri.size() > 2048)
     {
         Response.SetHTTPStatusCode(HTTP_URI_TOO_LONG);
+        code = HTTP_URI_TOO_LONG;
         return 0;
     }
     if(!Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Transfer-Encoding") != "chunked")
     {
         Response.SetHTTPStatusCode(HTTP_NOT_IMPLEMENTED);
+        code = HTTP_NOT_IMPLEMENTED;
         return 0;
     }
     if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST" && !Request.GetBody().empty())
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        code = HTTP_BAD_REQUEST;
         return 0;
     }
     return 1;
@@ -479,28 +484,6 @@ int File(std::string Path)
     return -1;
 }
 
-std::string HtmlToSring(std::string filePath)
-{
-
-    std::ifstream file(filePath.c_str());
-    if (!file.is_open()) 
-    {
-        return "";
-    }
-    std::string content;
-    std::string line;
-    while (std::getline(file, line)) 
-    {
-        content += line;
-        if (!file.eof()) 
-        {
-            content += "\n";
-        }
-    }
-
-    file.close();
-    return content;
-}
 
 std::string readHtmlPage(int index, t_servers ServerSetting) 
 {
@@ -654,26 +637,108 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
-std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
+
+// std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
+// {
+//
+//     std::string errPage = "./HtmlPages/notfound.html";
+//     std::string tmp;
+//     if(index == -2)
+//     {
+//         if(ServerSetting.errPage.empty())
+//         {
+//             ServerSetting.errPage = errPage;
+//         }
+//     }
+//     else 
+//     {
+//         if(ServerSetting.locations[index].errPage.empty())
+//         {
+//             if(ServerSetting.errPage.empty())
+//             {
+//                 ServerSetting.locations[index].errPage = errPage;
+//             }
+//             else 
+//             {
+//                 ServerSetting.locations[index].errPage = ServerSetting.errPage;
+//             }
+//         }
+//
+//     }
+//     if(index == -2)
+//     {
+//         tmp = HtmlToSring(ServerSetting.errPage);
+//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
+//     }
+//     else 
+//     {
+//         tmp = HtmlToSring(ServerSetting.locations[index].errPage);
+//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
+//     }
+//     return tmp;
+// }
+
+
+std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int autoIndex, HttpResponse &Response)
 {
-    std::cout << ServerSetting.locations[index].errPage[0]<<std::endl;
-    // std::cout << ServerSetting.jjjll<<std::endl;
-    return "";
+    std::string errPage;
+    std::string Resource;
+    int var = checkFileType(Uri);
+    
+    if(var == DIR_TYPE)
+    {
+        if(autoIndex == 1)
+        {
+            Resource = OpenDir(Uri);
+            ListDir(Resource, Uri);
+            Response.SetHTTPStatusCode(HTTP_OK);
+            return Resource;
+        }
+        else if(autoIndex == 0)
+        {
+            Resource = readHtmlPage(index, ServerSetting);
+            return Resource;
+        }
+        else
+        {
+            Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+
+            errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
+            return errPage;
+        }
+    }
+    else if(var == FILE_TYPE)
+    {
+        Resource = ReadFile(Uri);
+        Response.SetHTTPStatusCode(HTTP_OK);
+        return Resource;
+    }
+    else 
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+
+        errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+        return errPage;
+
+    }
+
+    return Resource;
 }
 
-std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
+std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
     std::string uri = Request.GetPath();
 
+    std::string errPage;
+    HTTPStatusCode code = HTTP_OK;
 
 
-    // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
-
-    if(!IsRequestGood(Request, Response))
+    if(!IsRequestGood(Request, Response, code))
     {
-        return "";
+        errPage = err_pages(ServerSetting, -2, code);
+        return errPage;
     }
 
     std::string &Uri = uri;
@@ -681,7 +746,10 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     if(index == -1)
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        return "";
+        
+        errPage = err_pages(ServerSetting, -2, HTTP_NOT_FOUND);
+        return errPage;
+
     }
     if(Request.GetPath() == "/")
     {
@@ -689,75 +757,58 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         if(Resource.empty())
         {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-            return "";
+            
+            errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+            return errPage;
+
         }
         Response.SetHTTPStatusCode(HTTP_OK);
         return Resource;
     }
-    if(!ServerSetting.locations[index].redirect.empty() && index >= 0)
+    if(index >= 0 && !ServerSetting.locations[index].redirect.empty())
     {
         Response.SetHTTPStatusCode(HTTP_MOVED_PERMANETLY);
         Response.SetConfigNum(index);
-        return "";
+
+        errPage = err_pages(ServerSetting, index, HTTP_MOVED_PERMANETLY);
+        return errPage;
     }
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
     int maxBodySize = GetMaxBodySize(ServerSetting, index);
+
     
     if(Method == "GET" && allowedMethod == 1)
     {
-        int var = checkFileType(Uri);
-        if(var == DIR_TYPE)
-        {
-            if(autoIndex == 1)
-            {
-                Resource = OpenDir(Uri);
-                ListDir(Resource, Uri);
-                Response.SetHTTPStatusCode(HTTP_OK);
-                return Resource;
-            }
-            else if(autoIndex == 0)
-            {
-                Resource = readHtmlPage(index, ServerSetting);
-                return Resource;
-            }
-            else
-            {
-                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-                return "";
-            }
-        }
-        else if(var == FILE_TYPE)
-        {
-            Resource = ReadFile(Uri);
-            Response.SetHTTPStatusCode(HTTP_OK);
-        }
-        else 
-        {
-            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-            return "";
-        }
+        Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response);
+        return Resource;
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
         if((int)Request.GetBody().size() > maxBodySize)
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
-            return "";
+
+            errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
+            return errPage;
+
         }
         Response.SetHTTPStatusCode(HTTP_OK);
     }
+
     else if(Method == "DELETE" && allowedMethod == 1)
     {
-
-        Response.SetHTTPStatusCode(HTTP_OK);
-        Delete(Request, Response, ServerSetting);
-        std::cout << "delete"<<std::endl;
+        Resource = Delete(Request, Response, ServerSetting, index, Uri);
+        return Resource;
     }
     else 
     {
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
+        errPage = err_pages(ServerSetting, index, HTTP_METHOD_NOT_ALLOWED);
+        
+        return errPage;
+
     }
     return Resource;
 }
@@ -833,7 +884,7 @@ void HttpResponse::SetConfigNum(int index)
     this->Confignum = index;
 }
 
-HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
+HttpResponse::HttpResponse(RequestParsser &Request, t_servers &ServerSetting): Request(Request)
 {
     this->Confignum = 0;
     this->Request = Request;
