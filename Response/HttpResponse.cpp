@@ -6,13 +6,14 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 00:51:39 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 03:57:24 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "../Tools/Tools.hpp"
 #include <atomic>
+#include <cerrno>
 #include <cstdio>
 #include <string>
 #include <sys/syslimits.h>
@@ -76,6 +77,43 @@ std::string GetMonthName(int n)
 std::string HttpResponse::GetHttpStatusMessage() const 
 { 
     switch(this->StatusCode) 
+    {
+        case HTTP_OK:
+            return "OK";
+        case HTTP_CREATED:
+            return "Created";
+        case HTTP_BAD_REQUEST:
+            return "Bad Request";
+        case HTTP_NOT_FOUND:
+            return "Not Found";
+        case HTTP_METHOD_NOT_ALLOWED:
+            return "Method Not Allowed";
+        case HTTP_INTERNAL_SERVER_ERROR:
+            return "Internal Server Error";
+        case HTTP_URI_TOO_LONG:
+            return "Uri Too Long";
+        case HTTP_ENTITY_TOO_LARGE:
+            return "Entity Too Large";
+        case HTTP_NOT_IMPLEMENTED:
+            return "Not Implemented";
+        case HTTP_FORBIDDEN:
+            return "Forbidden";
+        case HTTP_CONFLICT:
+            return  "Conflict";
+        case  HTTP_NO_CONTENT:
+            return "No Content";
+        case HTTP_MOVED_PERMANETLY:
+            return "Moved Permanetly";
+
+        default:
+            return "Unknown";
+    }
+}
+
+
+std::string GetHttpStatusMessage(HTTPStatusCode StatusCode)
+{ 
+    switch(StatusCode) 
     {
         case HTTP_OK:
             return "OK";
@@ -270,7 +308,6 @@ std::string generateListItems(const std::string &fileAndDirNames, const std::str
     return Items;
 }
 
-
 std::string InitPage(const std::string &List, const std::string &Uri)
 {
     std::string listContent = generateListItems(List, Uri);
@@ -338,7 +375,7 @@ bool hasDisallowedChars(const std::string& uri)
 }
 
 
-int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
+int IsRequestGood(const RequestParsser &Request, HttpResponse &Response, HTTPStatusCode &code)
 {
 
     std::string Uri = Request.GetPath();
@@ -346,21 +383,25 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response)
     if(hasDisallowedChars(Uri))
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        code = HTTP_BAD_REQUEST;
         return 0;
     }
     if(Uri.size() > 2048)
     {
         Response.SetHTTPStatusCode(HTTP_URI_TOO_LONG);
+        code = HTTP_URI_TOO_LONG;
         return 0;
     }
     if(!Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Transfer-Encoding") != "chunked")
     {
         Response.SetHTTPStatusCode(HTTP_NOT_IMPLEMENTED);
+        code = HTTP_NOT_IMPLEMENTED;
         return 0;
     }
     if(Request.GetHeader("Transfer-Encoding").empty() && Request.GetHeader("Content-Length").empty() && Request.GetHttpMethod() == "POST" && !Request.GetBody().empty())
     {
         Response.SetHTTPStatusCode(HTTP_BAD_REQUEST);
+        code = HTTP_BAD_REQUEST;
         return 0;
     }
     return 1;
@@ -654,11 +695,74 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
+std::string ModifyHtmlPage(std::string &htmlPage, HTTPStatusCode statusCode, std::string Path) 
+{
+    std::string modifiedPage = htmlPage;
+    std::string statusCodeStr;
+    std::ostringstream oss;
+    oss << statusCode;
+    statusCodeStr = oss.str();
+    std::string statusMessage = GetHttpStatusMessage(statusCode);
+
+    std::string statusCodePlaceholder = "<span class=\"status-code\">number</span>";
+    
+    if(Path == "./HtmlPages/notfound.html")
+    {
+        size_t startPos = modifiedPage.find(statusCodePlaceholder);
+        if (startPos != std::string::npos) 
+        {
+            modifiedPage.replace(startPos, statusCodePlaceholder.length(), "<span class=\"status-code\">" + statusCodeStr + "</span>");
+        }
+
+        std::string statusMessagePlaceholder = "<p>string.</p>";
+        
+        startPos = modifiedPage.find(statusMessagePlaceholder);
+        if (startPos != std::string::npos) 
+        {
+            modifiedPage.replace(startPos, statusMessagePlaceholder.length(), "<p>" + statusMessage + ".</p>");
+        }
+    }
+    return modifiedPage;
+}
+
 std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
 {
-    std::cout << ServerSetting.locations[index].errPage[0]<<std::endl;
-    // std::cout << ServerSetting.jjjll<<std::endl;
-    return "";
+
+    std::string errPage = "./HtmlPages/notfound.html";
+    std::string tmp;
+    if(index == -2)
+    {
+        if(ServerSetting.errPage.empty())
+        {
+            ServerSetting.errPage = errPage;
+        }
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].errPage.empty())
+        {
+            if(ServerSetting.errPage.empty())
+            {
+                ServerSetting.locations[index].errPage = errPage;
+            }
+            else 
+            {
+                ServerSetting.locations[index].errPage = ServerSetting.errPage;
+            }
+        }
+    
+    }
+    if(index == -2)
+    {
+        tmp = HtmlToSring(ServerSetting.errPage);
+        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
+    }
+    else 
+    {
+        tmp = HtmlToSring(ServerSetting.locations[index].errPage);
+        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
+    }
+    return tmp;
 }
 
 std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
@@ -667,13 +771,16 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     std::string Method = Request.GetHttpMethod();
     std::string uri = Request.GetPath();
 
+    std::string errPage;
+    HTTPStatusCode code = HTTP_OK;
 
 
     // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
-    if(!IsRequestGood(Request, Response))
+    if(!IsRequestGood(Request, Response, code))
     {
-        return "";
+        errPage = err_pages(ServerSetting, -2, code);
+        return errPage;
     }
 
     std::string &Uri = uri;
@@ -681,7 +788,10 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     if(index == -1)
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-        return "";
+        
+        errPage = err_pages(ServerSetting, -2, HTTP_NOT_FOUND);
+        return errPage;
+
     }
     if(Request.GetPath() == "/")
     {
@@ -689,21 +799,27 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         if(Resource.empty())
         {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-            return "";
+            
+            errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+            return errPage;
+
         }
         Response.SetHTTPStatusCode(HTTP_OK);
         return Resource;
     }
-    if(!ServerSetting.locations[index].redirect.empty() && index >= 0)
+    if(index >= 0 && !ServerSetting.locations[index].redirect.empty())
     {
         Response.SetHTTPStatusCode(HTTP_MOVED_PERMANETLY);
         Response.SetConfigNum(index);
-        return "";
+
+        errPage = err_pages(ServerSetting, index, HTTP_MOVED_PERMANETLY);
+        return errPage;
     }
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
     int maxBodySize = GetMaxBodySize(ServerSetting, index);
+
     
     if(Method == "GET" && allowedMethod == 1)
     {
@@ -725,18 +841,24 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
             else
             {
                 Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-                return "";
+                
+                errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
+                return errPage;
             }
         }
         else if(var == FILE_TYPE)
         {
             Resource = ReadFile(Uri);
             Response.SetHTTPStatusCode(HTTP_OK);
+            return Resource;
         }
         else 
         {
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-            return "";
+
+            errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+            return errPage;
+
         }
     }
     else if(Method == "POST" && allowedMethod == 1)
@@ -744,10 +866,14 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
         if((int)Request.GetBody().size() > maxBodySize)
         {
             Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
-            return "";
+
+            errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
+            return errPage;
+
         }
         Response.SetHTTPStatusCode(HTTP_OK);
     }
+
     else if(Method == "DELETE" && allowedMethod == 1)
     {
 
@@ -758,6 +884,10 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     else 
     {
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
+            
+        errPage = err_pages(ServerSetting, index, HTTP_METHOD_NOT_ALLOWED);
+        return errPage;
+
     }
     return Resource;
 }
