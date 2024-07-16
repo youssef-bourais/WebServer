@@ -21,6 +21,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 	data = getData();
 	checkForErrors(data);
 	itr = data.begin();
+	
 	while (itr != data.end()){
 		std::cout << "Looping" << std::endl;
 		server.listen = getRule(*itr, "listen");
@@ -68,8 +69,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 		this->servers.push_back(server);
 		itr++;
 	}
-
-	std::cout << "------------> " << this->servers[0].locations[0].redirect << std::endl;
+	
 }
 
 Parsing::~Parsing(void)
