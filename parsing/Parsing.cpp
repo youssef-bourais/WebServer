@@ -21,6 +21,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 	data = getData();
 	checkForErrors(data);
 	itr = data.begin();
+	
 	while (itr != data.end()){
 		std::cout << "Looping" << std::endl;
 		server.listen = getRule(*itr, "listen");
@@ -68,8 +69,7 @@ Parsing::Parsing(std::string filePath) : FileReader(filePath)
 		this->servers.push_back(server);
 		itr++;
 	}
-
-	std::cout << "------------> " << this->servers[0].locations[0].redirect << std::endl;
+	
 }
 
 Parsing::~Parsing(void)
@@ -446,7 +446,7 @@ std::vector<std::string> Parsing::getRule(t_data server, std::string ruleName)
 		{
 			selectedRule.erase(selectedRule.begin());
 			if (selectedRule.size() == 0) {
-				throw std::runtime_error("\x1b[31mError: invalid number of arguments in listen key.");
+				throw std::runtime_error("\x1b[31mError: invalid number of arguments key.");
 			}
 			return removeEmptyPos(selectedRule);
 		}
@@ -489,7 +489,9 @@ std::vector<std::string> Parsing::getLocationRule(t_data server, std::string loc
 	std::vector<std::string>::iterator itr;
 	std::vector<std::string> data;
 	std::vector<std::string> res;
+	std::vector<std::string> selectedRule;
 	std::string holder;
+
 
 	if (!isLocationExist(server, location))
 	{
@@ -503,12 +505,12 @@ std::vector<std::string> Parsing::getLocationRule(t_data server, std::string loc
 	itr = data.begin();
 	while (itr != data.end())
 	{
-		if (ft_trim(itr->substr(0, itr->find_first_of(" \t\n"))).compare(ruleName) == 0)
-		{
-			*itr = itr->erase(0, itr->find_first_of(" \t\n"));
-			*itr = ft_trim(*itr);
-			 res.push_back(itr->substr(0, itr->find_first_of(" \t\n")));
-			return res;
+		selectedRule = split(*itr, " \t\n");
+		if (selectedRule.size() > 0 && selectedRule[0].compare(ruleName) == 0) {
+			selectedRule.erase(selectedRule.begin());
+			if (selectedRule.size() == 0)
+				throw std::runtime_error("\x1b[31mError: invalide number of arguments");
+			return removeEmptyPos(selectedRule);
 		}
 		*itr++;
 	}

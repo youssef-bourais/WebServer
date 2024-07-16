@@ -11,7 +11,7 @@ void Parsing::checkUnknownKey(std::vector<t_data> data)
 	names.push_back("server_names");
 	names.push_back("host");
 	names.push_back("root");
-	names.push_back("proxy_pass");
+	// names.push_back("proxy_pass");
 	names.push_back("allowed_methods");
 	names.push_back("index");
 	names.push_back("maxBodySize");
@@ -269,7 +269,11 @@ void Parsing::checkAutoIndex(std::vector<std::string> autoIndex, size_t counter)
 	}
 }
 
-
+void checkVarDirector(void) {
+	if (access ("./var/html/www", F_OK) != 0){
+		throw std::runtime_error("\x1b[31mError: var/html/www not found.");
+	}
+}
 
 
 void Parsing::checkForErrors(std::vector<t_data> data)
@@ -312,6 +316,7 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		checkErrorPage(holder, counter);
 
 		holder = getRule(*itr, "autoIndex");
+		
 		checkAutoIndex(holder, counter);
 
 
@@ -331,11 +336,10 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 
 			holder = getLocationRule(*itr, *locationsHolderItr, "autoIndex");
 			checkAutoIndex(holder, counter);
-
-
 			locationsHolderItr++;
 		}
 		counter++;
 		*itr++;
 	}
+	checkVarDirector();
 }
