@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 03:57:24 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 06:53:09 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,42 +111,6 @@ std::string HttpResponse::GetHttpStatusMessage() const
 }
 
 
-std::string GetHttpStatusMessage(HTTPStatusCode StatusCode)
-{ 
-    switch(StatusCode) 
-    {
-        case HTTP_OK:
-            return "OK";
-        case HTTP_CREATED:
-            return "Created";
-        case HTTP_BAD_REQUEST:
-            return "Bad Request";
-        case HTTP_NOT_FOUND:
-            return "Not Found";
-        case HTTP_METHOD_NOT_ALLOWED:
-            return "Method Not Allowed";
-        case HTTP_INTERNAL_SERVER_ERROR:
-            return "Internal Server Error";
-        case HTTP_URI_TOO_LONG:
-            return "Uri Too Long";
-        case HTTP_ENTITY_TOO_LARGE:
-            return "Entity Too Large";
-        case HTTP_NOT_IMPLEMENTED:
-            return "Not Implemented";
-        case HTTP_FORBIDDEN:
-            return "Forbidden";
-        case HTTP_CONFLICT:
-            return  "Conflict";
-        case  HTTP_NO_CONTENT:
-            return "No Content";
-        case HTTP_MOVED_PERMANETLY:
-            return "Moved Permanetly";
-
-        default:
-            return "Unknown";
-    }
-}
-
 HttpResponse::~HttpResponse()
 {
 }
@@ -159,7 +123,7 @@ HttpResponse &HttpResponse::operator=(const HttpResponse &s)
     return *this;
 }
 
-HttpResponse::HttpResponse(const HttpResponse& copy) 
+HttpResponse::HttpResponse(const HttpResponse& copy): Request(copy.Request) 
 {
     *this = copy;
 }
@@ -520,28 +484,6 @@ int File(std::string Path)
     return -1;
 }
 
-std::string HtmlToSring(std::string filePath)
-{
-
-    std::ifstream file(filePath.c_str());
-    if (!file.is_open()) 
-    {
-        return "";
-    }
-    std::string content;
-    std::string line;
-    while (std::getline(file, line)) 
-    {
-        content += line;
-        if (!file.eof()) 
-        {
-            content += "\n";
-        }
-    }
-
-    file.close();
-    return content;
-}
 
 std::string readHtmlPage(int index, t_servers ServerSetting) 
 {
@@ -695,77 +637,95 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
-std::string ModifyHtmlPage(std::string &htmlPage, HTTPStatusCode statusCode, std::string Path) 
+
+// std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
+// {
+//
+//     std::string errPage = "./HtmlPages/notfound.html";
+//     std::string tmp;
+//     if(index == -2)
+//     {
+//         if(ServerSetting.errPage.empty())
+//         {
+//             ServerSetting.errPage = errPage;
+//         }
+//     }
+//     else 
+//     {
+//         if(ServerSetting.locations[index].errPage.empty())
+//         {
+//             if(ServerSetting.errPage.empty())
+//             {
+//                 ServerSetting.locations[index].errPage = errPage;
+//             }
+//             else 
+//             {
+//                 ServerSetting.locations[index].errPage = ServerSetting.errPage;
+//             }
+//         }
+//
+//     }
+//     if(index == -2)
+//     {
+//         tmp = HtmlToSring(ServerSetting.errPage);
+//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
+//     }
+//     else 
+//     {
+//         tmp = HtmlToSring(ServerSetting.locations[index].errPage);
+//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
+//     }
+//     return tmp;
+// }
+
+
+std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int autoIndex, HttpResponse &Response)
 {
-    std::string modifiedPage = htmlPage;
-    std::string statusCodeStr;
-    std::ostringstream oss;
-    oss << statusCode;
-    statusCodeStr = oss.str();
-    std::string statusMessage = GetHttpStatusMessage(statusCode);
-
-    std::string statusCodePlaceholder = "<span class=\"status-code\">number</span>";
+    std::string errPage;
+    std::string Resource;
+    int var = checkFileType(Uri);
     
-    if(Path == "./HtmlPages/notfound.html")
+    if(var == DIR_TYPE)
     {
-        size_t startPos = modifiedPage.find(statusCodePlaceholder);
-        if (startPos != std::string::npos) 
+        if(autoIndex == 1)
         {
-            modifiedPage.replace(startPos, statusCodePlaceholder.length(), "<span class=\"status-code\">" + statusCodeStr + "</span>");
+            Resource = OpenDir(Uri);
+            ListDir(Resource, Uri);
+            Response.SetHTTPStatusCode(HTTP_OK);
+            return Resource;
         }
-
-        std::string statusMessagePlaceholder = "<p>string.</p>";
-        
-        startPos = modifiedPage.find(statusMessagePlaceholder);
-        if (startPos != std::string::npos) 
+        else if(autoIndex == 0)
         {
-            modifiedPage.replace(startPos, statusMessagePlaceholder.length(), "<p>" + statusMessage + ".</p>");
+            Resource = readHtmlPage(index, ServerSetting);
+            return Resource;
+        }
+        else
+        {
+            Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+
+            errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
+            return errPage;
         }
     }
-    return modifiedPage;
-}
-
-std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
-{
-
-    std::string errPage = "./HtmlPages/notfound.html";
-    std::string tmp;
-    if(index == -2)
+    else if(var == FILE_TYPE)
     {
-        if(ServerSetting.errPage.empty())
-        {
-            ServerSetting.errPage = errPage;
-        }
+        Resource = ReadFile(Uri);
+        Response.SetHTTPStatusCode(HTTP_OK);
+        return Resource;
     }
     else 
     {
-        if(ServerSetting.locations[index].errPage.empty())
-        {
-            if(ServerSetting.errPage.empty())
-            {
-                ServerSetting.locations[index].errPage = errPage;
-            }
-            else 
-            {
-                ServerSetting.locations[index].errPage = ServerSetting.errPage;
-            }
-        }
-    
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+
+        errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+        return errPage;
+
     }
-    if(index == -2)
-    {
-        tmp = HtmlToSring(ServerSetting.errPage);
-        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
-    }
-    else 
-    {
-        tmp = HtmlToSring(ServerSetting.locations[index].errPage);
-        tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
-    }
-    return tmp;
+
+    return Resource;
 }
 
-std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
+std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
     std::string Resource;
     std::string Method = Request.GetHttpMethod();
@@ -774,8 +734,6 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     std::string errPage;
     HTTPStatusCode code = HTTP_OK;
 
-
-    // int MaxBodySize = StringToInt(ServerSetting.maxBodySize);
 
     if(!IsRequestGood(Request, Response, code))
     {
@@ -823,43 +781,8 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
     
     if(Method == "GET" && allowedMethod == 1)
     {
-        int var = checkFileType(Uri);
-        if(var == DIR_TYPE)
-        {
-            if(autoIndex == 1)
-            {
-                Resource = OpenDir(Uri);
-                ListDir(Resource, Uri);
-                Response.SetHTTPStatusCode(HTTP_OK);
-                return Resource;
-            }
-            else if(autoIndex == 0)
-            {
-                Resource = readHtmlPage(index, ServerSetting);
-                return Resource;
-            }
-            else
-            {
-                Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-                
-                errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
-                return errPage;
-            }
-        }
-        else if(var == FILE_TYPE)
-        {
-            Resource = ReadFile(Uri);
-            Response.SetHTTPStatusCode(HTTP_OK);
-            return Resource;
-        }
-        else 
-        {
-            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-
-            errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
-            return errPage;
-
-        }
+        Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response);
+        return Resource;
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
@@ -876,16 +799,14 @@ std::string GetResource(const RequestParsser &Request, HttpResponse &Response, t
 
     else if(Method == "DELETE" && allowedMethod == 1)
     {
-
-        Response.SetHTTPStatusCode(HTTP_OK);
-        Delete(Request, Response, ServerSetting);
-        std::cout << "delete"<<std::endl;
+        Resource = Delete(Request, Response, ServerSetting, index, Uri);
+        return Resource;
     }
     else 
     {
         Response.SetHTTPStatusCode(HTTP_METHOD_NOT_ALLOWED);
-            
         errPage = err_pages(ServerSetting, index, HTTP_METHOD_NOT_ALLOWED);
+        
         return errPage;
 
     }
@@ -963,7 +884,7 @@ void HttpResponse::SetConfigNum(int index)
     this->Confignum = index;
 }
 
-HttpResponse::HttpResponse(const RequestParsser &Request, t_servers &ServerSetting)
+HttpResponse::HttpResponse(RequestParsser &Request, t_servers &ServerSetting): Request(Request)
 {
     this->Confignum = 0;
     this->Request = Request;

@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/14 21:50:05 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 06:57:17 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,6 +337,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 int HttpServer::SendResponse(int fd, std::string &message)
 {
     int bytes_sent = send(fd, message.c_str(), message.size(), 0);
+    std::cout << bytes_sent<<std::endl;
     return bytes_sent;
 }
 

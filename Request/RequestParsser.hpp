@@ -25,6 +25,7 @@ class RequestParsser
         std::string Line;
         std::string remain;
         int Fd;
+        bool flage;
     public:
         RequestParsser();
         RequestParsser(int Fd);
@@ -42,6 +43,7 @@ class RequestParsser
 
         void ReadBody(int fd, const std::string &header);
         void ReadChunkedBody(int fd);
+        bool GetFlage() const;
        
         /* std::string GetHttpVersion() const; */
 

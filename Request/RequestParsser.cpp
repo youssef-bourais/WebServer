@@ -25,6 +25,7 @@ RequestParsser &RequestParsser::operator=(const RequestParsser &src)
         this->Path = src.Path;
         this->Line = src.Line;
         this->remain = src.remain;
+        this->flage = src.flage;
     }
     return *this;
 }
@@ -112,11 +113,12 @@ void ParssPath(std::string &path)
     }
 }
 
-std::string getPath(std::string RecivedLine)
+std::string getPath(std::string RecivedLine, std::string &oldPath)
 {
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
+    oldPath = path;
     NormalizePath(path);
     ParssPath(path);
     return path;
@@ -267,7 +269,12 @@ void RequestParsser::ReadChunkedBody(int fd)
     }
 }
 
-RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd)
+bool RequestParsser::GetFlage() const
+{
+    return this->flage;
+}
+
+RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd), flage(false)
 {
     std::string Line;
     char Buffer[2024 + 1];
@@ -293,10 +300,14 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
     this->HttpHeaders = InitHttpheaders(tmp);
     this->HttpVersion = GetVersion(this->Line);
     this->Method = GetMethod(this->Line);
-    this->Path = getPath(this->Line);
-
-
-    // std::cout << tmp<<std::endl;
+    std::string string;
+    this->Path = getPath(this->Line, string);
+    
+    if(string[string.size() - 1] == '/')
+    {
+        this->flage = true;
+        std::cout << "parss: "<< this->flage<<std::endl;
+    }
     if (!this->GetHeader("Transfer-Encoding").empty() && this->GetHeader("Transfer-Encoding") == "chunked") 
     {
         if(this->Line.size() < tmp.size())

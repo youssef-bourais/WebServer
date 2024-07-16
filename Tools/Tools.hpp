@@ -35,7 +35,7 @@
 void deleteDir(const std::string& path);
 bool isDirectory(const std::string& path);
 std::string removeLast(std::string str);
-void Delete (RequestParsser Request, HttpResponse &Response, t_servers setting);
+std::string Delete (RequestParsser &Request, HttpResponse &Response, t_servers &setting, int index, std::string Uri);
 int checkFileType(const std::string &path); 
 void ImOut(std::string msg);
 void printConfigFile(std::string Path);
@@ -44,3 +44,9 @@ void printVect(std::vector<std::string>::iterator begin, std::vector<std::string
 std::string intToString(int value) ;
 int StringToInt(const std::string &s);
 void SetSocketToNonBlocking(int fd);
+std::string HtmlToSring(std::string filePath);
+
+std::string GetHttpStatusMessage(HTTPStatusCode StatusCode);
+
+std::string ModifyHtmlPage(std::string &htmlPage, HTTPStatusCode statusCode, std::string Path); 
+std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode);
