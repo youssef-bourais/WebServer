@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <list>
+#include <string>
 
 struct KeyValuee 
 {
@@ -40,6 +41,8 @@ class RequestParsser
         std::string GetHttpMethod() const;
         std::string GetPath() const;
         std::string GetBody() const;
+        
+        std::string GetRemain() const;
 
         void ReadBody(int fd, const std::string &header);
         void ReadChunkedBody(int fd);

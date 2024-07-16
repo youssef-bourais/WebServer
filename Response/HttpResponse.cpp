@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 06:53:09 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/16 23:47:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <atomic>
 #include <cerrno>
 #include <cstdio>
+#include <random>
 #include <string>
 #include <sys/syslimits.h>
 
@@ -395,7 +396,12 @@ std::string rootPath(std::string path, std::string root)
 
 int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
 {
-    std::string rootpath = "./var/www/html/";
+    // if(Path.find("?") != std::string::npos)
+    // {
+    //
+    // }
+        
+    std::string rootpath = "./var/html/www/";
     if(ServerSetting.root.empty())
     {
         ServerSetting.root = rootpath;
@@ -638,46 +644,6 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
 }
 
 
-// std::string err_pages(t_servers ServerSetting, int index, HTTPStatusCode StatusCode)
-// {
-//
-//     std::string errPage = "./HtmlPages/notfound.html";
-//     std::string tmp;
-//     if(index == -2)
-//     {
-//         if(ServerSetting.errPage.empty())
-//         {
-//             ServerSetting.errPage = errPage;
-//         }
-//     }
-//     else 
-//     {
-//         if(ServerSetting.locations[index].errPage.empty())
-//         {
-//             if(ServerSetting.errPage.empty())
-//             {
-//                 ServerSetting.locations[index].errPage = errPage;
-//             }
-//             else 
-//             {
-//                 ServerSetting.locations[index].errPage = ServerSetting.errPage;
-//             }
-//         }
-//
-//     }
-//     if(index == -2)
-//     {
-//         tmp = HtmlToSring(ServerSetting.errPage);
-//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.errPage);
-//     }
-//     else 
-//     {
-//         tmp = HtmlToSring(ServerSetting.locations[index].errPage);
-//         tmp = ModifyHtmlPage(tmp, StatusCode, ServerSetting.locations[index].errPage);
-//     }
-//     return tmp;
-// }
-
 
 std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int autoIndex, HttpResponse &Response)
 {
@@ -724,6 +690,206 @@ std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int a
 
     return Resource;
 }
+
+#include <signal.h>
+
+std::string cgi_handler(t_servers ServerSetting, int index, std::string Method, std::string body, std::string Uri, std::string old)
+{
+    std::cout << "uri: "<<old<<std::endl;
+    std::string query = "username=abass&password=23";
+    std::string cgi_path = "/usr/bin/python3";
+
+    std::string query_p = Uri.substr(Uri.find("?") + 1);
+    std::string path = Uri.substr(0,Uri.find("?"));
+    
+    std::string name = ServerSetting.locations[index].cgiPath + path;
+    std::cout << name<<std::endl;
+    exit(0);
+    // std::cout << "name; "<<name<<std::endl;
+    
+    char *env[5];
+    env[0] = strdup("GATEWAY_INTERFACE=CGI/1.1");
+    std::string tmp = "REQUEST_METHOD="  + Method;
+	env[1] = strdup(tmp.c_str());
+    if(Method == "GET")
+    {
+	    query = "QUERY_STRING=" + query; //fro get
+	    env[2] = (char*)query.c_str(); 
+    }
+    if(Method == "POST")
+    {
+        std::string bodyLen = "CONTENT_LENGTH=26";
+        env[2] = (char *)bodyLen.c_str();
+    }
+	std::string scriptFileName = "SCRIPT_FILENAME=" + name;
+	env[3] = (char *)scriptFileName.c_str();
+	env[4] = NULL;
+    std::string response;
+    int status;
+    int fdin[2];
+    pid_t pid;
+    int start = time(0);
+    
+    if (pipe(fdin) == -1) {
+        perror("pipe");
+        exit(1);
+    }
+    pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        exit(1);
+    }
+    
+    if (pid == 0)
+    {
+        if (Method == "POST") //  we have post  
+        {
+            if (dup2(fdin[0], 0) == -1)
+            {
+                perror("dup2");
+                exit(1);
+            }
+        }
+        if (dup2(fdin[1], 1) == -1)
+        {
+            perror("dup2");
+            exit(1);
+        }
+
+        close(fdin[0]);
+        close(fdin[1]);
+
+        char **av = new char *[3];
+        av[0] = new char[cgi_path.length() + 1];
+        av[1] = new char[std::strlen(name.c_str()) + 1];
+        av[2] = NULL;
+        std::strcpy(av[0], cgi_path.c_str());
+        std::strcpy(av[1], name.c_str());
+        if (execve(cgi_path.c_str(), av, env) == -1) // set env instance of NULL
+        {
+            perror("execve");
+            exit(127);
+        }
+        exit(0);
+    }
+    else
+    {
+        if (Method == "POST")
+            write(fdin[1], body.c_str(), body.length());
+        int result;
+        while ((result = waitpid(pid, &status, WNOHANG)) == 0)
+        {
+            if (result == 0)
+            {
+                if ((time(0) - start) > 4)
+                {
+                    response = "HTTP/1.1 500 Internal Server Error";
+                    kill(pid, SIGKILL);
+                    close(fdin[1]);
+                    return response;
+                }
+                sleep(1);
+            }
+        }
+        if (WEXITSTATUS(status) != 0)
+        {
+            return "";
+        }
+        close(fdin[1]);
+        char buffer[1024];
+       
+        while (true)
+        {
+            int len = read(fdin[0], buffer, 1023);
+            if (len <= 0)
+                break;
+            if (len == 1023)
+                buffer[len] = '\0';
+            else
+                buffer[len + 1] = '\0';
+            if (len >= 0)
+            {
+                buffer[len] = '\0';
+                response += buffer;
+            }
+        }
+        return response;
+    }
+    return "";
+}
+
+std::string Post(t_servers &ServerSetting, int index, std::string Uri, HttpResponse &Response, bool autoIndex, std::string oldpath, std::string remain)
+{
+    std::string file_name = "file2";
+    std::string content_type = "multipart/form-data";
+    std::string data = "hello world";
+
+    // std::cout <<"Uri: "<< Uri<<std::endl;
+    // std::cout << "oldpath: "<<oldpath<< std::endl;
+
+    std::string res;
+    std::string upload_dir;
+
+     if(content_type.find("multipart/form-data") != std::string::npos)
+     {
+        upload_dir += ServerSetting.locations[index].root;
+        if(ServerSetting.locations[index].root.back() != '/')
+            upload_dir += '/';
+        upload_dir += ServerSetting.locations[index].uploadPath;
+        if(ServerSetting.locations[index].uploadPath.back() != '/')
+            upload_dir += '/';
+        std::ofstream out(upload_dir + file_name, std::ios::binary);
+        out.write(data.data(), data.size());
+        out.close();
+        
+        Response.SetHTTPStatusCode(HTTP_CREATED);
+        return "";
+   }
+   else
+   {
+        std::string full_path = Uri;
+        struct stat Stat;
+        if (stat(full_path.c_str(), &Stat) != 0)
+        {
+            Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+            return err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+        }
+        else if(S_ISDIR(Stat.st_mode))// check if the file exists
+        {
+            res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+            return res;
+        }
+        else if (Uri.find(".py") != std::string::npos)
+        {
+        
+    
+            cgi_handler(ServerSetting, index, "POST", "", oldpath, remain);
+            res = "runnnn cgiiii";
+            if(res == "")
+            {
+                return err_pages(ServerSetting, index, HTTP_INTERNAL_SERVER_ERROR);
+
+            }
+            else 
+            {
+                std::cout << "yes"<<std::endl;
+                // return res;
+            }
+     
+        }
+    
+        else if(Uri.find(".py") == std::string::npos)
+    
+        {
+        
+            res = GETMethod(ServerSetting, index, Uri, false,Response);
+    }
+   }
+    return res;
+}
+
+  
+
 
 std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
 {
@@ -776,9 +942,10 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
-    int maxBodySize = GetMaxBodySize(ServerSetting, index);
+    // int maxBodySize = GetMaxBodySize(ServerSetting, index);
 
     
+    // std::cout << Uri<<std::endl;
     if(Method == "GET" && allowedMethod == 1)
     {
         Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response);
@@ -786,15 +953,18 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
-        if((int)Request.GetBody().size() > maxBodySize)
-        {
-            Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+        // std::cout << "size: "<<Request.GetBody().size()<<std::endl;
+        // if((int)Request.GetBody().size() > maxBodySize)
+        // {
+            // exit(0);
+            return Post(ServerSetting, index, Uri, Response, autoIndex, Request.GetPath(), Request.GetRemain());
+            // Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
 
-            errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
-            return errPage;
+            // errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
+            // return errPage;
 
-        }
-        Response.SetHTTPStatusCode(HTTP_OK);
+        // }
+        // Response.SetHTTPStatusCode(HTTP_OK);
     }
 
     else if(Method == "DELETE" && allowedMethod == 1)
