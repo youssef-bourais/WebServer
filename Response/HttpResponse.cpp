@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 03:56:50 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 04:57:41 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -860,22 +860,33 @@ void saveFile(std::string path, std::string fileName, std::string data)
 
 std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpResponse &Response, bool autoIndex, std::string oldpath, std::string remain)
 {
-    std::string file_name = "1.txt";
+
+    std::string file_name = "bbbb.txt";
     std::string content_type = "multipart/form-data";
     std::string data = "good trip";
 
+
+    std::string script;
+
     std::map<std::string, std::string> querystring = QueryString(Uri);
+    if(!querystring.empty())
+    {
+        //
+
+
+    }
     
     std::string res;
     std::string upload_dir;
 
-   if(content_type.find("multipart/form-data") != std::string::npos)
+   if(content_type.find("multipart/fata") != std::string::npos)
     {
         if(index == -2)
         {
             if(ServerSetting.uploadPath.empty())
             {
                 res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+                return res;
             }
             else 
             {
@@ -886,8 +897,8 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
                 upload_dir = ServerSetting.root;
                 if(ServerSetting.root[ServerSetting.root.size() - 1] != '/')
                     upload_dir += '/';
-                upload_dir += ServerSetting.uploadPath;
-                if(upload_dir[upload_dir.size() - 1])
+                upload_dir += ServerSetting.uploadPath.substr(2);
+                if(upload_dir[upload_dir.size() - 1] != '/')
                     upload_dir += '/';
 
                 saveFile(upload_dir, file_name, data);
@@ -900,6 +911,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
             if(ServerSetting.locations[index].uploadPath.empty())
             {
                 res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+                return res;
             }
             else 
             {
@@ -913,9 +925,9 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
                 upload_dir = ServerSetting.locations[index].root;
                 if(ServerSetting.locations[index].root[ServerSetting.locations[index].root.size() - 1] != '/')
                     upload_dir += '/';
-                upload_dir += ServerSetting.locations[index].uploadPath;
+                upload_dir += ServerSetting.locations[index].uploadPath.substr(2);
 
-                if(upload_dir[upload_dir.size() - 1])
+                if(upload_dir[upload_dir.size() - 1] != '/')
                     upload_dir += '/';
 
                 saveFile(upload_dir, file_name, data);
@@ -927,8 +939,30 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
     }
    else  // NOLINT
    {
-        std::cout << Uri<<std::endl;
-        std::string full_path = Uri;
+        // the same logic as above (index == -2 for perent config) , 0>= locations
+        // int i = LocationIsMatching(ServerSetting, Uri, "GET");
+        // std::cout << "new: "<< i<< " "<<Uri<<std::endl;
+        bool Cgi = false;
+
+        std::string full_path;
+
+        if(index == -2)
+        {
+            if(!ServerSetting.cgiExtentions.empty() && !ServerSetting.cgiPath.empty())
+            {
+                Cgi = true;
+                if(ServerSetting.root.empty())
+                    ServerSetting.root = "./var/html/www/";
+                full_path = ServerSetting.root + ServerSetting.cgiPath + Uri;
+                std::cout << "full_path: "<<full_path<<std::endl;
+            }
+
+        }
+        else 
+        {
+
+        }
+        // std::string full_path = Uri;
         struct stat Stat;
         if (stat(full_path.c_str(), &Stat) != 0)
         {
@@ -960,6 +994,43 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
             res = GETMethod(ServerSetting, index, Uri, false,Response);
         }
     }
+    // if(1)  // NOLINT
+    // {
+    //     // the same logic as above (index == -2 for perent config) , 0>= locations
+    //     std::cout << Uri<<std::endl;
+    //     std::string full_path = Uri;
+    //     struct stat Stat;
+    //     if (stat(full_path.c_str(), &Stat) != 0)
+    //     {
+    //         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+    //         return err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+    //     }
+    //     else if(S_ISDIR(Stat.st_mode))// check if the file exists
+    //     {
+    //         res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+    //         return res;
+    //     }
+    //     else if (Uri.find(".py") != std::string::npos)
+    //     {
+    //         cgi_handler(ServerSetting, index, "POST", "", oldpath, remain);
+    //         res = "runnnn cgiiii";
+    //         if(res == "")
+    //         {
+    //             return err_pages(ServerSetting, index, HTTP_INTERNAL_SERVER_ERROR);
+    //
+    //         }
+    //         else 
+    //         {
+    //             std::cout << "yes"<<std::endl;
+    //             // return res;
+    //         }
+    //     }
+    //     else if(Uri.find(".py") == std::string::npos)
+    //     {
+    //         res = GETMethod(ServerSetting, index, Uri, false,Response);
+    //     }
+    // }
+
     return res;
 }
 
@@ -1014,10 +1085,9 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
 
     int autoIndex = GetAutoIndex(ServerSetting, index);
     int allowedMethod = IsMethodAllowed(ServerSetting, index, Method);
-    // int maxBodySize = GetMaxBodySize(ServerSetting, index);
+    int maxBodySize = GetMaxBodySize(ServerSetting, index);
 
     
-    // std::cout << Uri<<std::endl;
     if(Method == "GET" && allowedMethod == 1)
     {
         Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response);
@@ -1025,18 +1095,14 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
     }
     else if(Method == "POST" && allowedMethod == 1)
     {
-        // std::cout << "size: "<<Request.GetBody().size()<<std::endl;
-        // if((int)Request.GetBody().size() > maxBodySize)
-        // {
-            // exit(0);
-            return Post(ServerSetting, index, Uri, Response, autoIndex, Request.GetPath(), Request.GetRemain());
-            // Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+        if((int)Request.GetBody().size() > maxBodySize)
+        {
+            Response.SetHTTPStatusCode(HTTP_ENTITY_TOO_LARGE);
+            errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
+            return errPage;
 
-            // errPage = err_pages(ServerSetting, index, HTTP_ENTITY_TOO_LARGE);
-            // return errPage;
-
-        // }
-        // Response.SetHTTPStatusCode(HTTP_OK);
+        }
+        return Post(ServerSetting, index, Uri, Response, autoIndex, Request.GetPath(), Request.GetRemain());
     }
 
     else if(Method == "DELETE" && allowedMethod == 1)

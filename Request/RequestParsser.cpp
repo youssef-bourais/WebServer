@@ -279,25 +279,6 @@ bool RequestParsser::GetFlage() const
     return this->flage;
 }
 
-std::string readLine(int socket) 
-{
-    std::string line;
-    char c;
-    while (true) 
-    {
-        ssize_t bytesRead = recv(socket, &c, 1, 0);
-        if (bytesRead <= 0) 
-            break;
-        if (c == '\r') 
-        {
-            bytesRead = recv(socket, &c, 1, 0);
-            break;
-        }
-        line += c;
-    }
-    return line;
-}
-
 // std::string handleChunkedTransfer(int socket) 
 // {
 //     std::string body;
@@ -339,6 +320,25 @@ std::string readLine(int socket)
 //   }
 //   return body;
 // }
+
+std::string readLine(int socket) 
+{
+    std::string line;
+    char c;
+    while (true) 
+    {
+        ssize_t bytesRead = recv(socket, &c, 1, 0);
+        if (bytesRead <= 0) 
+            break;
+        if (c == '\r') 
+        {
+            bytesRead = recv(socket, &c, 1, 0);
+            break;
+        }
+        line += c;
+    }
+    return line;
+}
 
 std::string handleChunkedTransfer(int socket) 
 {
@@ -425,8 +425,6 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
             contentLength = headerLine.substr(headerLine.find(":") + 2);
         }
     }
-
-
     // std::cout << headers<<std::endl;
 
     if(!transferEncoding.empty())
