@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 22:26:19 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 22:45:47 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -655,95 +655,6 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
     return 0;
 }
 
-
-
-std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int autoIndex, HttpResponse &Response)
-{
-    std::string errPage;
-    std::string Resource;
-
-
-
-
-
-
-
-
-    int var = checkFileType(Uri);
-    
-    if(var == DIR_TYPE)
-    {
-        if(autoIndex == 1)
-        {
-            Resource = OpenDir(Uri);
-            ListDir(Resource, Uri);
-            Response.SetHTTPStatusCode(HTTP_OK);
-            return Resource;
-        }
-        else if(autoIndex == 0)
-        {
-            Resource = readHtmlPage(index, ServerSetting);
-            return Resource;
-        }
-        else
-        {
-            Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
-
-            errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
-            return errPage;
-        }
-    }
-    else if(var == FILE_TYPE || Uri.find(".py") != std::string::npos)
-    {
-        std::string file;
-
-        // std::cout << "uri : "<<Uri<<std::endl;
-        // exit(0);
-        if(Uri.find(".py") != std::string::npos)// find .py
-        {
-
-            std::string root;
-            if(index == -2)
-            {
-                std::string py = Uri.substr(ServerSetting.root.size() - 2);
-                if(ServerSetting.cgiPath.empty())
-                {
-                    ServerSetting.cgiPath = "/pages/cgi/";
-                    file = ServerSetting.cgiPath;
-                }
-                else 
-                {
-                    file = ServerSetting.cgiPath;
-                }
-                Uri = ServerSetting.root + file + py;
-                std::cout << Uri<<std::endl;
-                exit(0);
-            }
-            else 
-            {
-            
-            }
-
-        }
-        else 
-        {
-        
-            Resource = ReadFile(Uri);
-            Response.SetHTTPStatusCode(HTTP_OK);
-            return Resource;
-        }
-    }
-    else 
-    {
-        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
-
-        errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
-        return errPage;
-    }
-
-    return Resource;
-}
-
  char* str_dup(const std::string& str)
 {
     char* res = new char[str.size() + 1];
@@ -751,11 +662,21 @@ std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int a
     res[str.size()] = '\0'; // Ensure null-termination
     return res;
 }
+
+
+// std::map<std::string, std::string> QueryString(std::string url) 
 std::string cgi_handler(RequestParsser &Request, std::string fullpath,std::string method)
 {
 
     std::string body ;
-    std::string query = "";
+    std::string query;
+    if(method == "GET" && fullpath.find("?"))
+    {
+        query = fullpath.substr(fullpath.find("?") + 1);
+        fullpath = fullpath.substr(0,fullpath.find("?"));
+        // std::cout << fullpath<<std::endl;
+        // std::cout << query<<std::endl;
+    }
     if(method == "POST" && !Request.GetBody().empty())
     {
         body = Request.GetBody();
@@ -877,6 +798,114 @@ std::string cgi_handler(RequestParsser &Request, std::string fullpath,std::strin
     }
     return "";
 }
+
+std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int autoIndex, HttpResponse &Response, RequestParsser &Request)
+{
+    std::string errPage;
+    std::string Resource;
+
+
+
+
+
+
+
+
+    int var = checkFileType(Uri);
+    
+    if(var == DIR_TYPE)
+    {
+        if(autoIndex == 1)
+        {
+            Resource = OpenDir(Uri);
+            ListDir(Resource, Uri);
+            Response.SetHTTPStatusCode(HTTP_OK);
+            return Resource;
+        }
+        else if(autoIndex == 0)
+        {
+            Resource = readHtmlPage(index, ServerSetting);
+            return Resource;
+        }
+        else
+        {
+            Response.SetHTTPStatusCode(HTTP_FORBIDDEN);
+
+            errPage = err_pages(ServerSetting, index, HTTP_FORBIDDEN);
+            return errPage;
+        }
+    }
+    else if(var == FILE_TYPE || Uri.find(".py") != std::string::npos)
+    {
+        std::string file;
+
+        // std::cout << "uri : "<<Uri<<std::endl;
+        // exit(0);
+        if(Uri.find(".py") != std::string::npos)// find .py
+        {
+
+            std::string root;
+            if(index == -2)
+            {
+                std::string py = Uri.substr(ServerSetting.root.size() - 2);
+                if(ServerSetting.cgiPath.empty())
+                {
+                    ServerSetting.cgiPath = "/pages/cgi/";
+                    file = ServerSetting.cgiPath;
+                }
+                else 
+                {
+                    file = ServerSetting.cgiPath;
+                }
+                if(file[0] == '.' && file[1] == '/')
+                {
+                    file = file.substr(2);
+
+                }
+                Uri = ServerSetting.root + file + py;
+            }
+            else 
+            {
+                std::string py = Uri.substr(ServerSetting.locations[index].root.size() - 2);
+                if(ServerSetting.locations[index].cgiPath.empty())
+                {
+                    ServerSetting.locations[index].cgiPath = "/pages/cgi/";
+                    file = ServerSetting.locations[index].cgiPath;
+                }
+                else 
+                {
+                    file = ServerSetting.locations[index].cgiPath;
+                }
+                if(file[0] == '.' && file[1] == '/')
+                {
+                    file = file.substr(2);
+
+                }
+                Uri = ServerSetting.root + file + py;
+            }
+            Resource = cgi_handler(Request, Uri, "GET");
+            std::cout << Uri<<std::endl;
+        }
+        else 
+        {
+        
+            Resource = ReadFile(Uri);
+            Response.SetHTTPStatusCode(HTTP_OK);
+            return Resource;
+        }
+    }
+    else 
+    {
+        Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
+
+        errPage = err_pages(ServerSetting, index, HTTP_NOT_FOUND);
+        return errPage;
+    }
+
+    return Resource;
+}
+
+
 #include <map>
 
 std::map<std::string, std::string> QueryString(std::string url) 
@@ -940,7 +969,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
         {
             if(ServerSetting.uploadPath.empty())
             {
-                res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+                res = GETMethod(ServerSetting, index, Uri, autoIndex,Response, Request);
                 return res;
             }
             else 
@@ -965,7 +994,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
         {
             if(ServerSetting.locations[index].uploadPath.empty())
             {
-                res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+                res = GETMethod(ServerSetting, index, Uri, autoIndex,Response, Request);
                 return res;
             }
             else 
@@ -1056,7 +1085,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
         }
         else if(S_ISDIR(Stat.st_mode))// check if the file exists
         {
-            res = GETMethod(ServerSetting, index, full_path, autoIndex,Response);
+            res = GETMethod(ServerSetting, index, full_path, autoIndex,Response, Request);
             return res;
         }
             
@@ -1079,7 +1108,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
         }
         else if(Uri.find(".py") == std::string::npos)
         {
-            res = GETMethod(ServerSetting, index, Uri, false,Response);
+            res = GETMethod(ServerSetting, index, Uri, false,Response, Request);
         }
     }
     return res;
@@ -1147,7 +1176,7 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
     
     if(Method == "GET" && allowedMethod == 1)
     {
-        Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response);
+        Resource = GETMethod(ServerSetting, index, Uri, autoIndex, Response, Request);
         return Resource;
     }
     else if(Method == "POST" && allowedMethod == 1)
