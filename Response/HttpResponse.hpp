@@ -27,6 +27,11 @@
 #include "../Request/HttpMessage.hpp"
 #include "../Request/RequestParsser.hpp"
 
+#include <iostream>
+#include <unistd.h>
+#include <cstring>
+#include <sys/wait.h>
+
 #include "../parsing/parsingStruct.hpp"
 
 enum HTTPStatusCode 

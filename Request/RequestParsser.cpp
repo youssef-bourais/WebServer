@@ -118,6 +118,11 @@ std::string getPath(std::string RecivedLine, std::string &oldPath)
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
+    // if(path.find("?") != std::string::npos)
+    // {
+    //     oldPath = path;
+    //     // path = path.substr(0, path.find("?"));
+    // }
     oldPath = path;
     NormalizePath(path);
     ParssPath(path);
@@ -155,7 +160,7 @@ void RequestParsser::PrintHeaders() const
     std::list<KeyValuee>::const_iterator it = HttpHeaders.begin();
     while (it != HttpHeaders.end()) 
     {
-        std::cout << it->HttpHeader<< ":"<< it->HttpValue<<std::endl;
+        //std::cout << it->HttpHeader<< ":"<< it->HttpValue<<std::endl;
         it++;
     }
 }
@@ -274,57 +279,208 @@ bool RequestParsser::GetFlage() const
     return this->flage;
 }
 
+std::string readLine(int socket) 
+{
+    std::string line;
+    char c;
+    while (true) 
+    {
+        ssize_t bytesRead = recv(socket, &c, 1, 0);
+        if (bytesRead <= 0) 
+            break;
+        if (c == '\r') 
+        {
+            bytesRead = recv(socket, &c, 1, 0);
+            break;
+        }
+        line += c;
+    }
+    return line;
+}
+
+// std::string handleChunkedTransfer(int socket) 
+// {
+//     std::string body;
+//     while (true) 
+//     {
+//         std::string chunkSizeHex = readLine(socket);
+//
+//         if (chunkSizeHex.empty()) 
+//         {
+//             break; // Handle error: empty line received
+//         }
+//
+//         int chunkSize = std::strtol(chunkSizeHex.c_str(), NULL, 16);
+//
+//         if (chunkSize == 0) 
+//         {
+//             readLine(socket); // Read and discard trailer (optional)
+//             break;
+//         }
+//
+//         std::vector<char> chunkData(chunkSize);
+//         ssize_t totalBytesReceived = 0;
+//         while (totalBytesReceived < chunkSize) 
+//         {
+//             ssize_t bytesRead = recv(socket, chunkData.data() + totalBytesReceived, chunkSize - totalBytesReceived, 0);
+//             if (bytesRead <= 0) 
+//             {
+//                 break; // Handle error: socket error or connection closed
+//             }
+//             totalBytesReceived += bytesRead;
+//         }
+//         if (totalBytesReceived != chunkSize) 
+//         {
+//             break;
+//         }
+//
+//         body += std::string(chunkData.data(), chunkSize);
+//         readLine(socket); // Read and discard CRLF after chunk data (optional)
+//   }
+//   return body;
+// }
+
+std::string handleChunkedTransfer(int socket) 
+{
+    std::string body;
+    while (true) 
+    {
+        std::string chunkSizeHex = readLine(socket);
+
+        int chunkSize = std::strtol(chunkSizeHex.c_str(), NULL, 16);
+        if (chunkSize == 0) 
+        {
+            break;
+        }
+        std::vector<char> chunkData(chunkSize);
+        int i = 0;
+        while(i < chunkSize)
+        {
+            ssize_t bytesRead = recv(socket, chunkData.data() + i, chunkSize - i, 0);
+
+            if (bytesRead <= 0) 
+                break;
+            i += bytesRead;
+        }
+        if(i != chunkSize)
+        {
+            break;
+        }
+        body.append(chunkData.data(), chunkSize);
+        readLine(socket);
+    }
+    return body;
+}
+
+std::string RequestParsser::GetRemain() const
+{
+    return this->remain;
+}
+
 RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd), flage(false)
 {
-    std::string Line;
-    char Buffer[2024 + 1];
-    int r = 0;
-    int Tot = 0;
-    int HeadersEnd = 0;
-    std::string tmp;
+    this->Line = readLine(fd);
+   
+    this->HttpVersion = GetVersion(this->Line);
+    this->Method = GetMethod(this->Line);
+    
+    std::string forDelete;
+    
+    this->Path = getPath(this->Line, forDelete);
+    this->remain = forDelete;
+    if(forDelete[forDelete.size() - 1] == '/')
+    {
+        this->flage = true;
+    }
+
+    std::string headers;
+    std::string contentType;
+    std::string transferEncoding;
+    std::string contentLength;
+    std::string boundary;
     
     while (true) 
     {
-        r = recv(fd, Buffer, 20, 0);
-        if(r <= 0)
-            break;
-        Buffer[r] = '\0';
-        Tot += r;
-        tmp.append(Buffer, r);
-        HeadersEnd = tmp.find("\r\n\r\n");
-        if((unsigned long)HeadersEnd != std::string::npos)
-            break;
-    }
+        std::string headerLine = readLine(fd);
 
-    this->Line = tmp.substr(0, HeadersEnd);
-    this->HttpHeaders = InitHttpheaders(tmp);
-    this->HttpVersion = GetVersion(this->Line);
-    this->Method = GetMethod(this->Line);
-    std::string string;
-    this->Path = getPath(this->Line, string);
-    
-    if(string[string.size() - 1] == '/')
-    {
-        this->flage = true;
-        std::cout << "parss: "<< this->flage<<std::endl;
-    }
-    if (!this->GetHeader("Transfer-Encoding").empty() && this->GetHeader("Transfer-Encoding") == "chunked") 
-    {
-        if(this->Line.size() < tmp.size())
+        headers += headerLine + "\r\n";
+        if (headerLine.empty()) 
+            break;
+
+        if (headerLine.find("Content-Type:") != std::string::npos) 
         {
-            std::string remain = tmp.substr(HeadersEnd + 8, tmp.size());
-            this->remain = remain;
+            contentType = headerLine.substr(headerLine.find(":") + 2);
+            size_t pos = contentType.find("boundary=");
+            if (pos != std::string::npos) 
+            {
+                boundary = contentType.substr(pos + 9, contentType.size() - pos);
+            }
         }
-        ReadChunkedBody(fd);
-        // std::cout << this->Body<<std::endl;
+        if (headerLine.find("Transfer-Encoding:") != std::string::npos) 
+        {
+            transferEncoding = headerLine.substr(headerLine.find(":") + 2);
+        }
+        if (headerLine.find("Content-Length:") != std::string::npos) 
+        {
+            contentLength = headerLine.substr(headerLine.find(":") + 2);
+        }
     }
-    else if (!this->GetHeader("Content-Length").empty()) 
+
+
+    // std::cout << headers<<std::endl;
+
+    if(!transferEncoding.empty())
+    {
+        std::string key = "Transfer-Encoding";
+        std::string value = transferEncoding;
+        this->HttpHeaders.push_back(KeyValuee(key, value));
+
+    }
+    if(!contentLength.empty())
     {
 
-        std::string remain = tmp.substr(HeadersEnd + 4, tmp.size());
-        this->remain = remain;
+        std::string key = "Content-Length";
+        std::string value = contentLength;
+        this->HttpHeaders.push_back(KeyValuee(key, value));
+
+    }
+    if(!contentType.empty())
+    {
+        std::string key = "Content-Type";
+        std::string value = contentType.substr(0, contentType.find(";"));
+        this->HttpHeaders.push_back(KeyValuee(key, value));
+    }
+
+    // std::cout << "=========headers======="<<std::endl;
+    // PrintHeaders();
+    
+    if (!boundary.empty()) 
+    {
+
+    } 
+    else if (!transferEncoding.empty() && transferEncoding.find("chunked") != std::string::npos) 
+    {
+    //     bool expect100Continue = false;
+    //
+    //
+    //     if(GetHeader(std::string key))
+    //         expect100Continue = true;
+    //
+    //     if (expect100Continue) 
+    //     {
+    //         std::string continueResponse = "HTTP/1.1 100 Continue\r\n\r\n";
+    //         send(fd, continueResponse.c_str(), continueResponse.size(), 0);
+    //     }
+    //     close(fd);
+        this->Body = handleChunkedTransfer(fd);
+        // ReadChunkedBody(fd);
+    }
+    else if (!contentLength.empty()) 
+    {
         ReadBody(fd, this->GetHeader("Content-Length"));
     }
+    // std::cout << "==========body=========="<<std::endl;
+    // std::cout << this->Body<<std::endl;
 }
 
 std::string RequestParsser::GetPath() const
