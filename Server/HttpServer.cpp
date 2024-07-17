@@ -6,7 +6,7 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 06:57:17 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 17:32:46 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ int HttpServer::AccepteConnection(int fd)
 
 RequestParsser HttpServer::ReciveData(int fd)
 {    
+    RequestBody req;
     RequestParsser Request(fd);
     return Request;
 }

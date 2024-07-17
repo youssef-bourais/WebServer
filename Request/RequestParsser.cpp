@@ -6,7 +6,107 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "../Tools/Tools.hpp"
+#include <fstream>
+#include <sstream>
 
+
+std::string trim(const std::string &str)
+{
+    std::string result = str;
+
+    if (result.length() >= 2 && result.substr(0, 2) == "\r\n")
+    {
+        result = result.substr(2);
+    }
+    if (result.length() >= 2 && result.substr(0, 2) == "\r\n")
+    {
+        result = result.substr(2);
+    }
+
+    if (result.length() >= 2 && result.substr(result.length() - 2) == "\r\n")
+    {
+        result = result.substr(0, result.length() - 2);
+    }
+
+    return result;
+}
+
+std::string Start(const std::string &request)
+{
+    std::string boundary = "";
+    int i = request.find("boundary=") + 9;
+    while (request[i] != '\r' && request[i] != '\n' && request[i] != '\0')
+    {
+        boundary += request[i];
+        i++;
+    }
+    return boundary;
+}
+
+void sub_parse(std::istringstream &stream, std::string start, std::string end, RequestBody &req)
+{
+    std::string line;
+    std::string tmp = "";
+    while (line.find(start) == std::string::npos)
+        std::getline(stream, line);
+    while (std::getline(stream, line))
+    {
+        if (line.find("Content-Disposition: form-data") != std::string::npos)
+        {
+            int i = line.find("name=") + 6;
+            req.name = "";
+            while (line[i] != '"' && line[i] != '\r' && line[i] != '\r' && line[i] != '\0')
+                req.name += line[i++];
+            i = line.find("filename=") + 10;
+            req.filename = "";
+            while (line[i] != '"' && line[i] != '\r' && line[i] != '\r' && line[i] != '\0')
+                req.filename += line[i++];
+        }
+        else if (line.find("Content-Type:") != std::string::npos)
+            continue;
+        else if (line.find(end) != std::string::npos)
+        {
+            req.data += tmp;
+            break;
+        }
+        else if (line.find("--" + start) != std::string::npos)
+            continue;
+        else
+            req.data += line + "\n";
+    }
+    req.data = trim(req.data);
+}
+
+void ft_parse(std::string str, RequestBody &req)
+{
+    std::istringstream stream(str);
+    std::string start = Start(str);
+    std::string end = start + "--";
+    sub_parse(stream, start, end, req);
+}
+
+std::string handleBoundry(int fd)
+{
+    std::string line;
+    int buffer_s = 100;
+    char ch[100];
+    ssize_t bytesRead;
+
+    while (true)
+    {
+        bytesRead = read(fd, ch, buffer_s);
+
+        if (bytesRead <= 0)
+            break;
+        line.append(ch, bytesRead);
+    }
+    //std::cout << "[handleBoundry - DATA ] => " + line + "\n";
+    // std::istringstream iss(line);
+    // std::string start = Start(line);
+    // Request req = sub_parse(iss,);
+    // std::cout <<"req.data => "  +  req.data << std::endl;
+    return line;
+}
 
 RequestParsser &RequestParsser::operator=(const RequestParsser &src) 
 {
@@ -26,15 +126,17 @@ RequestParsser &RequestParsser::operator=(const RequestParsser &src)
         this->Line = src.Line;
         this->remain = src.remain;
         this->flage = src.flage;
+        this->name = src.name;
+        this->filename = src.filename;
+        this->data = src.data;
     }
     return *this;
 }
 
-RequestParsser::RequestParsser(const RequestParsser& copy) 
+RequestParsser::RequestParsser(const RequestParsser& copy)
 {
     *this = copy;
 }
-
 
 RequestParsser::~RequestParsser()
 {
@@ -373,13 +475,22 @@ std::string handleChunkedTransfer(int socket)
     }
     return body;
 }
-
-std::string RequestParsser::GetRemain() const
+std::string RequestParsser::Getname() const
 {
-    return this->remain;
+    return this->name;
 }
 
-RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), remain("") , Fd(fd), flage(false)
+std::string RequestParsser::Getfilename() const
+{
+    return this->filename;
+}
+
+std::string RequestParsser::GetData() const
+{
+    return this->data;
+}
+
+RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), filename("") , Fd(fd), flage(false)
 {
     this->Line = readLine(fd);
    
@@ -451,38 +562,29 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
         std::string value = contentType.substr(0, contentType.find(";"));
         this->HttpHeaders.push_back(KeyValuee(key, value));
     }
-
-    // std::cout << "=========headers======="<<std::endl;
-    // PrintHeaders();
-    // exit(0);
-    
     if (!boundary.empty()) 
     {
-
+        RequestBody req;
+        this->Body = handleBoundry(fd);
+        ft_parse(this->Body, req);
+        this->filename = req.filename;
+        this->data = req.data;
+        this->name = req.name;
     } 
     else if (!transferEncoding.empty() && transferEncoding.find("chunked") != std::string::npos) 
     {
-    //     bool expect100Continue = false;
-    //
-    //
-    //     if(GetHeader(std::string key))
-    //         expect100Continue = true;
-    //
-    //     if (expect100Continue) 
-    //     {
-    //         std::string continueResponse = "HTTP/1.1 100 Continue\r\n\r\n";
-    //         send(fd, continueResponse.c_str(), continueResponse.size(), 0);
-    //     }
-    //     close(fd);
         this->Body = handleChunkedTransfer(fd);
-        // ReadChunkedBody(fd);
     }
     else if (!contentLength.empty()) 
     {
         ReadBody(fd, this->GetHeader("Content-Length"));
+        // std::cout << this->Body<<std::endl;
+        // exit(0);
     }
-    // std::cout << "==========body=========="<<std::endl;
+    // std::cout << this->Body.size()<<std::endl;
     // std::cout << this->Body<<std::endl;
+    // exit(0);
+    
 }
 
 std::string RequestParsser::GetPath() const
@@ -494,6 +596,7 @@ std::string RequestParsser::GetBody() const
 {
     return this->Body;
 }
+
 RequestParsser::RequestParsser()
 {
 

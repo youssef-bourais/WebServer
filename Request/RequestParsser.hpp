@@ -14,6 +14,13 @@ struct KeyValuee
     KeyValuee(const std::string &k, const std::string &v) : HttpHeader(k), HttpValue(v) {}
 };
 
+struct RequestBody
+{
+    std::string filename;
+    std::string name;
+    std::string data;
+
+};
 
 class RequestParsser
 {
@@ -24,9 +31,11 @@ class RequestParsser
         std::string Method;
         std::string Path;
         std::string Line;
+        std::string filename;
+        std::string data;
+        std::string name;
         std::string remain;
-        int Fd;
-        bool flage;
+        int Fd; bool flage;
     public:
         RequestParsser();
         RequestParsser(int Fd);
@@ -42,6 +51,9 @@ class RequestParsser
         std::string GetPath() const;
         std::string GetBody() const;
         
+        std::string Getfilename() const;
+        std::string Getname() const;
+        std::string GetData() const;
         std::string GetRemain() const;
 
         void ReadBody(int fd, const std::string &header);

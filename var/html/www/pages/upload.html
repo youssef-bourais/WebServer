@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>File Upload Form</title>
+</head>
+<body>
+    <h1>File Upload Form</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label for="file">Choose a file to upload:</label>
+        <input type="file" id="file" name="file"><br><br>
+        <input type="submit" value="Upload">
+    </form>
+    <pre id="response"></pre>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const responseContainer = document.getElementById('response');
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                const text = await response.text();
+                responseContainer.textContent = text;
+            } catch (error) {
+                responseContainer.textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
