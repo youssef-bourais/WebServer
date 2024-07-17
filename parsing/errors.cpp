@@ -276,6 +276,14 @@ void checkVarDirector(void) {
 }
 
 
+void checkIfDirExist(std::string path) {
+	std::string err = "\x1b[31mError: " + path + " Don't exist";
+	if (access(path.c_str(), F_OK) != 0){
+		throw std::runtime_error(err);
+	}
+}
+
+
 void Parsing::checkForErrors(std::vector<t_data> data)
 {
 	std::vector<t_data>::iterator itr;
@@ -316,8 +324,12 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 		checkErrorPage(holder, counter);
 
 		holder = getRule(*itr, "autoIndex");
-		
 		checkAutoIndex(holder, counter);
+
+		holder = getRule(*itr, "upload_path");
+		if (holder.size() > 0)
+			checkIfDirExist(holder[0]);
+		locationsHolderItr++;
 
 
 		// exit(1);
@@ -336,6 +348,10 @@ void Parsing::checkForErrors(std::vector<t_data> data)
 
 			holder = getLocationRule(*itr, *locationsHolderItr, "autoIndex");
 			checkAutoIndex(holder, counter);
+
+			holder = getLocationRule(*itr, *locationsHolderItr, "upload_path");
+			if (holder.size() > 0)
+				checkIfDirExist(holder[0]);
 			locationsHolderItr++;
 		}
 		counter++;
