@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/16 23:47:06 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 02:32:01 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -392,10 +392,9 @@ std::string rootPath(std::string path, std::string root)
     return Path;
 }
 
-
-
-int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
+int LocationIsMatching(t_servers &ServerSetting, std::string &Path, std::string Method)
 {
+
     // if(Path.find("?") != std::string::npos)
     // {
     //
@@ -443,34 +442,39 @@ int LocationIsMatching(t_servers &ServerSetting, std::string &Path)
             flage = 1;
         }
         
+         // std::cout << "location: "<<tmp2<<std::endl;
+         // std::cout << "path: "<< tmp<<std::endl;
+
         if(tmp2 == tmp || flage)
         {
+            if(Method == "POST")
+                return i;
             std::string locationRoot = ServerSetting.locations[i].root;
             if(locationRoot[locationRoot.size() - 1] != '/')
             {
                 locationRoot += "/";
             }
-                std::string locationr;
-                if(locationRoot != "/")
-                {
-                    locationr = locationRoot.substr(2);
-                }
-                else
-                    locationr = "";
-                
-                int Index = Path.find("/");
-                
-                Path = locationr + Path.substr(Index + 1);
-                return i;
+            std::string locationr;
+            if(locationRoot != "/")
+            {
+                locationr = locationRoot.substr(2);
+            }
+            else
+                locationr = "";
+            
+            int Index = Path.find("/");
+            
+            Path = locationr + Path.substr(Index + 1);
+            return i;
         }
     }
    
-    if(!CheckIfResourceExists(realpath))
+    if(!CheckIfResourceExists(realpath) && Method != "POST")
     {
         return -1;
     }
-
-    Path = realpath;
+    if(Method != "POST")
+        Path = realpath;
     return -2;
 }
 
@@ -818,35 +822,117 @@ std::string cgi_handler(t_servers ServerSetting, int index, std::string Method, 
     return "";
 }
 
-std::string Post(t_servers &ServerSetting, int index, std::string Uri, HttpResponse &Response, bool autoIndex, std::string oldpath, std::string remain)
+std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpResponse &Response, bool autoIndex, std::string oldpath, std::string remain)
 {
     std::string file_name = "file2";
     std::string content_type = "multipart/form-data";
     std::string data = "hello world";
 
     // std::cout <<"Uri: "<< Uri<<std::endl;
-    // std::cout << "oldpath: "<<oldpath<< std::endl;
+    // std::cout << "oldpath: "<<remain<< std::endl;
 
     std::string res;
     std::string upload_dir;
 
-     if(content_type.find("multipart/form-data") != std::string::npos)
-     {
-        upload_dir += ServerSetting.locations[index].root;
-        if(ServerSetting.locations[index].root.back() != '/')
-            upload_dir += '/';
-        upload_dir += ServerSetting.locations[index].uploadPath;
-        if(ServerSetting.locations[index].uploadPath.back() != '/')
-            upload_dir += '/';
-        std::ofstream out(upload_dir + file_name, std::ios::binary);
-        out.write(data.data(), data.size());
-        out.close();
+
+    if(index == -2)
+    {
+        if(ServerSetting.uploadPath.empty())
+        {
+            res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+        }
+        else 
+        {
+            if(ServerSetting.root.empty())
+            {
+                ServerSetting.root = "./var/html/www/";
+            }
+            upload_dir = ServerSetting.root;
+            if(ServerSetting.root[ServerSetting.root.size() - 1] != '/')
+                upload_dir += '/';
+            upload_dir += ServerSetting.uploadPath;
+
+            std::ofstream out(upload_dir + file_name, std::ios::binary);
         
-        Response.SetHTTPStatusCode(HTTP_CREATED);
-        return "";
-   }
-   else
+            out.write(data.data(), data.size());
+        
+            out.close();
+            Response.SetHTTPStatusCode(HTTP_CREATED);
+            return "";
+        }
+    }
+    else 
+    {
+        if(ServerSetting.locations[index].uploadPath.empty())
+        {
+            res = GETMethod(ServerSetting, index, Uri, autoIndex,Response);
+        }
+        else 
+        {
+            if(ServerSetting.locations[index].root.empty())
+            {
+                if(ServerSetting.root.empty())
+                    ServerSetting.locations[index].root = "./var/html/www/";
+                else
+                    ServerSetting.locations[index].root = ServerSetting.root;
+            }
+            upload_dir = ServerSetting.locations[index].uploadPath;
+            if(ServerSetting.locations[index].root[ServerSetting.locations[index].root.size() - 1] != '/')
+                upload_dir += '/';
+            upload_dir += ServerSetting.locations[index].uploadPath;
+
+            std::ofstream out(upload_dir + file_name, std::ios::binary);
+        
+            out.write(data.data(), data.size());
+        
+            out.close();
+            Response.SetHTTPStatusCode(HTTP_CREATED);
+            return "";
+        }
+    }
+    
+   //   if(content_type.find("multipart/ddd") != std::string::npos)
+   //   {
+   //      if(index == -2)
+   //      {
+   //          if(ServerSetting.uploadPath.empty())
+   //          {
+   //              ServerSetting.uploadPath = "Uploads/";
+   //          }
+   //          if(ServerSetting.root.empty())
+   //          {
+   //              ServerSetting.root = "/var/html/www/";
+   //          }
+   //      }
+   //      if(index == -2)
+   //      {
+   //          upload_dir = ServerSetting.root;
+   //          if(ServerSetting.root[ServerSetting.root.size() - 1] != '/')
+   //              upload_dir += '/';
+   //          upload_dir += ServerSetting.uploadPath;
+   //      }
+   //      else 
+   //      {
+   //          upload_dir += ServerSetting.locations[index].root;
+   //
+   //          if(ServerSetting.locations[index].root[ServerSetting.locations[index].root.size() - 1] != '/')
+   //              upload_dir += '/';
+   //          upload_dir += ServerSetting.locations[index].uploadPath;
+   //
+   //          if(ServerSetting.locations[index].uploadPath.back() != '/')
+   //              upload_dir += '/';
+   //      }
+   //      std::ofstream out(upload_dir + file_name, std::ios::binary);
+   //      out.write(data.data(), data.size());
+   //      out.close();
+   //      std::cout << upload_dir + file_name<<std::endl;
+   //
+   //      Response.SetHTTPStatusCode(HTTP_CREATED);
+   //      return "";
+   // }
+   // else  // NOLINT
    {
+        std::cout << Uri<<std::endl;
         std::string full_path = Uri;
         struct stat Stat;
         if (stat(full_path.c_str(), &Stat) != 0)
@@ -861,8 +947,6 @@ std::string Post(t_servers &ServerSetting, int index, std::string Uri, HttpRespo
         }
         else if (Uri.find(".py") != std::string::npos)
         {
-        
-    
             cgi_handler(ServerSetting, index, "POST", "", oldpath, remain);
             res = "runnnn cgiiii";
             if(res == "")
@@ -875,20 +959,14 @@ std::string Post(t_servers &ServerSetting, int index, std::string Uri, HttpRespo
                 std::cout << "yes"<<std::endl;
                 // return res;
             }
-     
         }
-    
         else if(Uri.find(".py") == std::string::npos)
-    
         {
-        
             res = GETMethod(ServerSetting, index, Uri, false,Response);
+        }
     }
-   }
     return res;
 }
-
-  
 
 
 std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_servers &ServerSetting)
@@ -908,7 +986,7 @@ std::string GetResource(RequestParsser &Request, HttpResponse &Response, t_serve
     }
 
     std::string &Uri = uri;
-    int index = LocationIsMatching(ServerSetting, Uri);
+    int index = LocationIsMatching(ServerSetting, Uri, Method);
     if(index == -1)
     {
         Response.SetHTTPStatusCode(HTTP_NOT_FOUND);

@@ -118,12 +118,12 @@ std::string getPath(std::string RecivedLine, std::string &oldPath)
     int first_space = RecivedLine.find(' ');
     int second_space = RecivedLine.find(' ', first_space + 1);
     std::string path = RecivedLine.substr(first_space + 1, second_space - first_space - 1);
-    if(path.find("?") != std::string::npos)
-    {
-        oldPath = path;
-        // path = path.substr(0, path.find("?"));
-    }
-    // oldPath = path;
+    // if(path.find("?") != std::string::npos)
+    // {
+    //     oldPath = path;
+    //     // path = path.substr(0, path.find("?"));
+    // }
+    oldPath = path;
     NormalizePath(path);
     ParssPath(path);
     return path;
@@ -384,18 +384,14 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
     this->HttpVersion = GetVersion(this->Line);
     this->Method = GetMethod(this->Line);
     
-    std::string string;
+    std::string forDelete;
     
-    this->Path = getPath(this->Line, string);
-    this->remain = string;
-    // std::cout << "old path " + string<<std::endl;
-    std::cout << "jjjjjjjjjjj:: " + Path<<std::endl;
-    // exit(0);
-    if(string[string.size() - 1] == '/')
+    this->Path = getPath(this->Line, forDelete);
+    this->remain = forDelete;
+    if(forDelete[forDelete.size() - 1] == '/')
     {
         this->flage = true;
     }
-
 
     std::string headers;
     std::string contentType;
