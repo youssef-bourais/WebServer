@@ -160,7 +160,7 @@ void RequestParsser::PrintHeaders() const
     std::list<KeyValuee>::const_iterator it = HttpHeaders.begin();
     while (it != HttpHeaders.end()) 
     {
-        //std::cout << it->HttpHeader<< ":"<< it->HttpValue<<std::endl;
+        std::cout << it->HttpHeader<< ":"<< it->HttpValue<<std::endl;
         it++;
     }
 }
@@ -358,6 +358,8 @@ std::string handleChunkedTransfer(int socket)
         {
             ssize_t bytesRead = recv(socket, chunkData.data() + i, chunkSize - i, 0);
 
+        
+            // body.append(chunkData.data(), bytesRead);
             if (bytesRead <= 0) 
                 break;
             i += bytesRead;
@@ -426,6 +428,7 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
         }
     }
     // std::cout << headers<<std::endl;
+    // exit(0);
 
     if(!transferEncoding.empty())
     {
@@ -451,6 +454,7 @@ RequestParsser::RequestParsser(int fd) : HttpVersion("HTTP/1.1"), Body(""), rema
 
     // std::cout << "=========headers======="<<std::endl;
     // PrintHeaders();
+    // exit(0);
     
     if (!boundary.empty()) 
     {

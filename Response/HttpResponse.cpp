@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 04:57:41 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 05:58:45 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -865,13 +865,11 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
     std::string content_type = "multipart/form-data";
     std::string data = "good trip";
 
-
     std::string script;
 
     std::map<std::string, std::string> querystring = QueryString(Uri);
     if(!querystring.empty())
     {
-        //
 
 
     }
@@ -881,6 +879,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
 
    if(content_type.find("multipart/fata") != std::string::npos)
     {
+        // this block working acourding the configfile
         if(index == -2)
         {
             if(ServerSetting.uploadPath.empty())
@@ -940,7 +939,7 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
    else  // NOLINT
    {
         // the same logic as above (index == -2 for perent config) , 0>= locations
-        // int i = LocationIsMatching(ServerSetting, Uri, "GET");
+        // int i = LocationIsMatching(ServerSetting, Uri, "Post");
         // std::cout << "new: "<< i<< " "<<Uri<<std::endl;
         bool Cgi = false;
 
