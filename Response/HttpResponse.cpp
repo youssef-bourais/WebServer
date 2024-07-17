@@ -6,7 +6,7 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 22:45:47 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/17 23:10:47 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1229,7 +1229,32 @@ std::string GetDate()
     return std::string(buffer);
 }
 
+std::string getFileExtension(const std::string& fileName)
+{
+        size_t pos = fileName.find_last_of('.');
+        if (pos == std::string::npos) {
+            return "";
+        }
+        return fileName.substr(pos + 1);
+}
 
+std::string getContentType(const std::string& fileName)
+{
+        std::string extension = getFileExtension(fileName);
+
+        if (extension == "html") return "text/html";
+        if (extension == "txt") return "text/plain";
+        if (extension == "css") return "text/css";
+        if (extension == "js") return "application/javascript";
+        if (extension == "json") return "application/json";
+        if (extension == "jpg" || extension == "jpeg") return "image/jpeg";
+        if (extension == "png") return "image/png";
+        if (extension == "gif") return "image/gif";
+
+        return "application/octet-stream"; // Default binary type
+}
+
+    
 
 
 std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const RequestParsser &Request, t_servers &ServerSetting, int index)
@@ -1254,6 +1279,10 @@ std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const Reque
     
     key= "Date: ";
     Value = GetDate();
+    tmp.push_back(KeyValue(key, Value));
+
+    key= "Content-Type: ";
+    Value = getContentType(Request.GetPath());
     tmp.push_back(KeyValue(key, Value));
 
     if(!Response.GetResponseBody().empty())
