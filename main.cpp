@@ -6,19 +6,12 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 20:12:14 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 22:20:35 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/20 17:47:05 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "./Response/HttpResponse.hpp"
 #include "./Server/HttpServer.hpp"
-#include "./Request/HttpRequest.hpp"
-
-
 #include "./errors/Errors.hpp"
-#include "./parsing/parse.hpp"
-#include <sys/resource.h>
-#include "Tools/Tools.hpp"
 
 
 
@@ -38,9 +31,6 @@ int main(int ac, char **av)
     {
 		checker.checkFile();
 
-        // printConfigFile(checker.GetConfigFilePath());
-        std::cout << "===============START==============="<<std::endl;
-        
         HttpServer Server(checker);
         std::cout <<"waiting for conection on Port: " << PORT <<std::endl;
         Server.AccepteMultipleConnectionAndRecive();

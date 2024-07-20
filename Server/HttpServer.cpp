@@ -6,33 +6,19 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 21:14:22 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 17:32:46 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/20 17:48:06 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpServer.hpp"
-#include <algorithm>
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-#include <limits>
-#include <map>
-#include <ostream>
-#include <stdint.h> // Include for uint32_t definition
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/wait.h>
-#include <vector>
-#include "../Tools/Tools.hpp"
-
 #include "../Request/RequestParsser.hpp"
+#include "../Tools/Tools.hpp"
 
 #define SP " "
 
 
 HttpServer::~HttpServer()
 {
-    // close(ServerFd);
 }
 
 std::string HttpServer::GetRequest() const
@@ -338,7 +324,7 @@ void HttpServer::AccepteMultipleConnectionAndRecive()
 int HttpServer::SendResponse(int fd, std::string &message)
 {
     int bytes_sent = send(fd, message.c_str(), message.size(), 0);
-    std::cout << bytes_sent<<std::endl;
+    // std::cout << bytes_sent<<std::endl;
     return bytes_sent;
 }
 

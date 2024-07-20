@@ -11,28 +11,23 @@
 
 #pragma once
 
-#include "../Request/HttpRequest.hpp"
-#include <cstring>
+#include "../Request/RequestParsser.hpp"
+#include "../parsing/parsingStruct.hpp"
+
+#include <cstdio>
+#include <ostream>
+#include <string>
+#include <sys/syslimits.h>
+#include <signal.h>
 #include <list>
 #include <sys/fcntl.h>
-
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
-
 #include <sys/stat.h>
-
-#include <sstream>
-#include "../Request/HttpMessage.hpp"
-#include "../Request/RequestParsser.hpp"
-
-#include <iostream>
 #include <unistd.h>
-#include <cstring>
 #include <sys/wait.h>
-
-#include "../parsing/parsingStruct.hpp"
+#include <dirent.h>
 
 enum HTTPStatusCode 
 {
@@ -49,6 +44,13 @@ enum HTTPStatusCode
     HTTP_CONFLICT = 409,
     HTTP_NO_CONTENT = 204,
     HTTP_MOVED_PERMANETLY = 300
+};
+
+struct KeyValue 
+{
+    std::string HttpHeader;
+    std::string HttpValue;
+    KeyValue(const std::string &k, const std::string &v) : HttpHeader(k), HttpValue(v) {}
 };
 
 class HttpResponse

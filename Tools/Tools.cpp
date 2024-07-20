@@ -77,7 +77,7 @@ void printConfigFile(std::string Path)
 }
 
 
-void PrintRequestInfo(const HttpRequest &Request)
+void PrintRequestInfo(const RequestParsser &Request)
 {
     std::cout << std::endl<<"++++++++++++++++++| Http  Method |++++++++++++++++"<<std::endl;
     std::cout<< Request.GetHttpMethod()<<std::endl;
@@ -85,8 +85,8 @@ void PrintRequestInfo(const HttpRequest &Request)
     std::cout << std::endl<<"++++++++++++++++++|  Http   URI  |++++++++++++++++"<<std::endl;
     std::cout << Request.GetPath()<<std::endl;
 
-    std::cout << std::endl<<"++++++++++++++++++| Http Version |++++++++++++++++"<<std::endl;
-    std::cout << Request.GetHttpVersion()<<std::endl;
+    // std::cout << std::endl<<"++++++++++++++++++| Http Version |++++++++++++++++"<<std::endl;
+    // std::cout << Request.GetHttpVersion()<<std::endl;
     std::cout << std::endl<<"++++++++++++++++++| Http Headers |++++++++++++++++"<<std::endl;
     Request.PrintHeaders();
     std::cout << std::endl<<"++++++++++++++++++|  Http Request Body  |++++++++++++++++"<<std::endl;

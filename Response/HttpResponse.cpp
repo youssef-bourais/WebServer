@@ -6,22 +6,13 @@
 /*   By: sait-bah <sait-bah@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/19 14:39:55 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/17 23:10:47 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/20 17:41:54 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
 #include "../Tools/Tools.hpp"
-#include <atomic>
-#include <cerrno>
-#include <cstdio>
-#include <iterator>
-#include <ostream>
-#include <random>
-#include <string>
-#include <sys/syslimits.h>
 
-#include <signal.h>
 std::string GetDayName(int n) 
 {
     switch(n) 
@@ -216,23 +207,6 @@ int FileOrDir(std::string Path)
     return -1;
 }
 
-// int checkFileType(const std::string &path) 
-// {
-//     struct stat s;
-//     std::string tmp = "." + path;
-//     // std::cout << path<<std::endl;
-//     // exit(0);
-//     if (stat(path.c_str(), &s) == 0) 
-//     {
-//         if (s.st_mode & S_IFDIR) 
-//             return 1;
-//         else if (s.st_mode & S_IFREG) 
-//             return 0;
-//     }
-//     return -1;
-// }
-
-#include <dirent.h>
 
 std::string OpenDir(const std::string &Dir)
 {
@@ -376,8 +350,6 @@ int IsRequestGood(const RequestParsser &Request, HttpResponse &Response, HTTPSta
 }
 
 
-
-
 std::string rootPath(std::string path, std::string root)
 {
     std::string Path;
@@ -397,12 +369,6 @@ std::string rootPath(std::string path, std::string root)
 
 int LocationIsMatching(t_servers &ServerSetting, std::string &Path, std::string Method)
 {
-
-    // if(Path.find("?") != std::string::npos)
-    // {
-    //
-    // }
-        
     std::string rootpath = "./var/html/www/";
     if(ServerSetting.root.empty())
     {
@@ -444,9 +410,6 @@ int LocationIsMatching(t_servers &ServerSetting, std::string &Path, std::string 
         {
             flage = 1;
         }
-        
-         // std::cout << "location: "<<tmp2<<std::endl;
-         // std::cout << "path: "<< tmp<<std::endl;
 
         if(tmp2 == tmp || flage)
         {
@@ -475,7 +438,6 @@ int LocationIsMatching(t_servers &ServerSetting, std::string &Path, std::string 
             return i;
         }
     }
-    // if()
    
     if(!CheckIfResourceExists(realpath) && Method != "POST" && realpath.find(".py") == std::string::npos) 
     {
@@ -664,7 +626,6 @@ int GetMaxBodySize(t_servers ServerSetting, int index)
 }
 
 
-// std::map<std::string, std::string> QueryString(std::string url) 
 std::string cgi_handler(RequestParsser &Request, std::string fullpath,std::string method)
 {
 
@@ -674,8 +635,6 @@ std::string cgi_handler(RequestParsser &Request, std::string fullpath,std::strin
     {
         query = fullpath.substr(fullpath.find("?") + 1);
         fullpath = fullpath.substr(0,fullpath.find("?"));
-        // std::cout << fullpath<<std::endl;
-        // std::cout << query<<std::endl;
     }
     if(method == "POST" && !Request.GetBody().empty())
     {
@@ -684,7 +643,6 @@ std::string cgi_handler(RequestParsser &Request, std::string fullpath,std::strin
         body = body.substr(i + 3);
 
     }
-    //std::string query = body;
     std::string cgi_path = "/usr/bin/python3";
     std::string name = fullpath;
 
@@ -804,13 +762,6 @@ std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int a
     std::string errPage;
     std::string Resource;
 
-
-
-
-
-
-
-
     int var = checkFileType(Uri);
     
     if(var == DIR_TYPE)
@@ -839,8 +790,6 @@ std::string GETMethod(t_servers ServerSetting, int index, std::string Uri, int a
     {
         std::string file;
 
-        // std::cout << "uri : "<<Uri<<std::endl;
-        // exit(0);
         if(Uri.find(".py") != std::string::npos)// find .py
         {
 
@@ -948,13 +897,6 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
     std::string content_type = Request.GetHeader("Content-Type");
 
     std::string script;
-
-    std::map<std::string, std::string> querystring = QueryString(Uri);
-    if(!querystring.empty())
-    {
-
-
-    }
     
     std::string res;
     std::string upload_dir;
@@ -1072,14 +1014,8 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
         }
 
         struct stat Stat;
-        // std::cout << full_path<<std::endl;
         if (stat(full_path.c_str(), &Stat) != 0)
         {
-            // std::cout << "full_path: "<<full_path<<std::endl;
-            // std::cout << "uri "<< Uri<<std::endl;
-            // std::cout << Request.GetBody() << std::endl;
-            // exit(0);
-
             Response.SetHTTPStatusCode(HTTP_NOT_FOUND);
             return err_pages(ServerSetting, index, HTTP_NOT_FOUND);
         }
@@ -1094,8 +1030,6 @@ std::string Post(t_servers ServerSetting, int index, std::string Uri, HttpRespon
     
             std::string name;
             std::string cgi_path;
-            
-            // std::cout << Request.GetBody()<<std::endl;
             res = cgi_handler(Request, full_path, "POST");
             if(res == "")
             {
@@ -1232,7 +1166,8 @@ std::string GetDate()
 std::string getFileExtension(const std::string& fileName)
 {
         size_t pos = fileName.find_last_of('.');
-        if (pos == std::string::npos) {
+        if (pos == std::string::npos) 
+        {
             return "";
         }
         return fileName.substr(pos + 1);
@@ -1242,20 +1177,24 @@ std::string getContentType(const std::string& fileName)
 {
         std::string extension = getFileExtension(fileName);
 
-        if (extension == "html") return "text/html";
-        if (extension == "txt") return "text/plain";
-        if (extension == "css") return "text/css";
-        if (extension == "js") return "application/javascript";
-        if (extension == "json") return "application/json";
-        if (extension == "jpg" || extension == "jpeg") return "image/jpeg";
-        if (extension == "png") return "image/png";
-        if (extension == "gif") return "image/gif";
-
+        if (extension == "html") 
+            return "text/html";
+        if (extension == "txt") 
+            return "text/plain";
+        if (extension == "css") 
+            return "text/css";
+        if (extension == "js") 
+            return "application/javascript";
+        if (extension == "json")   
+            return "application/json";
+        if (extension == "jpg" || extension == "jpeg") 
+            return "image/jpeg";
+        if (extension == "png")    
+            return "image/png";
+        if (extension == "gif") 
+            return "image/gif";
         return "application/octet-stream"; // Default binary type
 }
-
-    
-
 
 std::list<KeyValue> SetResponseHeaders(const HttpResponse &Response, const RequestParsser &Request, t_servers &ServerSetting, int index)
 {

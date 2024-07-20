@@ -6,27 +6,30 @@
 /*   By: ybourais <ybourais@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/07 20:42:24 by ybourais          #+#    #+#             */
-/*   Updated: 2024/07/13 02:38:40 by ybourais         ###   ########.fr       */
+/*   Updated: 2024/07/20 17:44:58 by ybourais         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <cstring>
-#include <list>
+
+#include "../parsing/parsingStruct.hpp"
+#include "../Request/RequestParsser.hpp"
+#include "../Response/HttpResponse.hpp"
+#include "../errors/Errors.hpp"
 #include <netinet/in.h> // struct sockaddr_in
 #include <sys/errno.h>
 #include <sys/socket.h>
-#include <iostream>
- #include <unistd.h>
+#include <unistd.h>
 #include <vector>
-#include "../parsing/parsingStruct.hpp"
+#include <map>
+#include <stdint.h> // Include for uint32_t definition
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <vector>
 
-#include "../Request/HttpMessage.hpp"
-#include "../Response/HttpResponse.hpp"
-#include "../Request/RequestParsser.hpp"
 
-#include "../errors/Errors.hpp"
 
 #define MAXLEN 8192
 #define SA struct sockaddr_in
@@ -53,8 +56,6 @@ class HttpServer
         RequestParsser ReciveData(int fd);
         const std::string GenarateResponse(const HttpResponse &Response, int fd) const;
         int SendResponse(int fd, std::string &message);
-
-
         
         int AccepteConnection(int fd);
 };

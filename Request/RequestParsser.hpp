@@ -43,7 +43,6 @@ class RequestParsser
         RequestParsser(const RequestParsser &copy);
         RequestParsser &operator=(const RequestParsser &src);
 
-
         void PrintHeaders() const;
         
         std::string GetHeader(std::string key) const;
@@ -60,17 +59,6 @@ class RequestParsser
         void ReadChunkedBody(int fd);
         bool GetFlage() const;
        
-        /* std::string GetHttpVersion() const; */
-
-        // std::string GetBody() const;
-        // std::string GetHttpVersion() const;
-        // std::string GetRecivedLine() const;
-        //
-        // std::string GetHost() const;
-        // std::string GetHeader(std::string Key) const;
-        //
-        // void PrintRequest() const;
-        // void PrintHeaders() const;
 };
 
 
